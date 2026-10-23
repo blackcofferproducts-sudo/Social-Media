@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { accounts } from "./accounts";
 import { fixtures } from "./fixtures";
 import {
+  analyse,
   decide,
   evaluateGate,
   hardFails,
@@ -107,7 +108,7 @@ describe("Pat's gate", () => {
     assert.equal(edited.canMockPublish, false);
   });
 
-  it("stops at the daily cap and never sends Threads or a draft-only account through the mock", () => {
+  it("stops at the daily cap, mock-publishes an approved Threads reply, and keeps draft-only accounts off the mock", () => {
     const capped = evaluateGate({
       ...base,
       approvedText: fixture.suggestedDraft,
@@ -123,11 +124,20 @@ describe("Pat's gate", () => {
       category: threads.category,
       signal: threads.signal,
       comment: threads.comment,
-      draft: "Yes. Independent artists.",
-      approvedText: "Yes. Independent artists.",
+      draft: threads.suggestedDraft,
+      approvedText: threads.suggestedDraft,
     });
-    assert.equal(threadsGate.canMockPublish, false);
+    assert.equal(threadsGate.decision.action, "reply");
+    assert.equal(threadsGate.canMockPublish, true);
     assert.equal(threadsGate.canRecordManual, false);
+    const reading = analyse({
+      accountId: threads.accountId,
+      category: threads.category,
+      signal: threads.signal,
+      text: threads.comment,
+    });
+    assert.equal(reading.sentiment, "Positive");
+    assert.equal(reading.strategy.startsWith("Answer"), true);
 
     const pat = fixtures.find((item) => item.id === "x-agents-short");
     assert.ok(pat);

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { accounts, accountIds } from "@/lib/accounts";
+import { accounts, liveAccountIds } from "@/lib/accounts";
 import { fixtures } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
 import { gateFor, getDesk } from "@/lib/store";
@@ -11,29 +11,27 @@ export default async function QueuePage({
   searchParams: Promise<{ account?: string }>;
 }) {
   const { account } = await searchParams;
-  const selected = accountIds.find((id) => id === account);
+  const selected = liveAccountIds.find((id) => id === account);
   const desk = getDesk();
-  const rows = fixtures.filter((fixture) => !selected || fixture.accountId === selected);
+  const rows = fixtures.filter(
+    (fixture) =>
+      liveAccountIds.includes(fixture.accountId) &&
+      (!selected || fixture.accountId === selected),
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <h1 className="font-heading text-2xl font-medium">Queue</h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          Mock comments only. Threads stays with Threadify. X and Pat&apos;s personal LinkedIn can
-          be drafted here, then posted by Pat. Instagram and the CITY JAM LinkedIn Page can be
-          mock-published after his approval.
+          This build is Threads only. Mock replies for CITY JAM, scored by two testers, then
+          approved by Pat before a mock publish. X, Instagram, and LinkedIn stay in the brief for
+          the next slice. Threadify can still schedule posts.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Filter href="/" current={!selected} label="All accounts" />
-        {accountIds.map((id) => (
-          <Filter
-            key={id}
-            href={`/?account=${id}`}
-            current={selected === id}
-            label={accounts[id].short}
-          />
+        {liveAccountIds.map((id) => (
+          <Filter key={id} href="/" current label={accounts[id].short} />
         ))}
       </div>
       <ul className="flex flex-col gap-3">

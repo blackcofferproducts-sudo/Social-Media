@@ -17,7 +17,7 @@ import {
 import { accounts } from "@/lib/accounts";
 import type { Fixture } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
-import { evaluateGate, PASS_MARK, SCORE_MAX, type TesterScore } from "@/lib/policy";
+import { analyse, evaluateGate, PASS_MARK, SCORE_MAX, type TesterScore } from "@/lib/policy";
 import type { CommentRecord } from "@/lib/store";
 
 const marks = [
@@ -39,6 +39,12 @@ export function ReviewDesk({
 }) {
   const [draft, setDraft] = useState(record.draft);
   const account = accounts[fixture.accountId];
+  const reading = analyse({
+    accountId: fixture.accountId,
+    category: fixture.category,
+    signal: fixture.signal,
+    text: fixture.comment,
+  });
   const dirty = draft !== record.draft;
   const gate = evaluateGate({
     accountId: fixture.accountId,
@@ -63,6 +69,17 @@ export function ReviewDesk({
           <Badge variant="outline">{categoryLabel[fixture.category]}</Badge>
           <Badge variant="outline">{signalLabel[fixture.signal]}</Badge>
         </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Reading</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-1 text-sm leading-6">
+            <p>Sentiment: {reading.sentiment}</p>
+            <p>Intent: {reading.intent}</p>
+            <p>Topics: {reading.topics.join(", ")}</p>
+            <p>Move: {reading.strategy}</p>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Post</CardTitle>
@@ -180,7 +197,7 @@ export function ReviewDesk({
               <form action={publishAction}>
                 <input type="hidden" name="commentId" value={fixture.id} />
                 <Button type="submit" variant="outline" disabled={!gate.canMockPublish}>
-                  Publish to the mock account
+                  Publish to the mock {account.platform} account
                 </Button>
               </form>
               <form action={manualAction}>

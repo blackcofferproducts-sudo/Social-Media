@@ -9,7 +9,7 @@ import { capSummary, getDesk } from "@/lib/store";
 
 const blanks = [
   "Momentive hive is not defined. It has no role until someone writes what it is, who is in it, and what it owns.",
-  "The Threads account behind the 10,000 followers is not named. Threadify keeps that account's posts and replies unless Pat says otherwise.",
+  "This build is CITY JAM on Threads. The account behind the 10,000 followers is still for Pat to confirm. Threadify can keep scheduling posts.",
   "Dating / love and the corporate music industry have no brand. Those comments hand off.",
   "Instagram growth, LinkedIn resonance, and LinkedIn conversion have no numeric target.",
   "The two human testers are unnamed until they are saved on this page.",
@@ -60,13 +60,16 @@ export default function LimitsPage() {
       </Card>
 
       <div className="flex flex-col gap-3">
-        {accountIds.map((id) => {
+        {[...accountIds]
+          .sort((a, b) => (accounts[a].phase === accounts[b].phase ? 0 : accounts[a].phase === "now" ? -1 : 1))
+          .map((id) => {
           const account = accounts[id];
           const usage = caps.find((row) => row.account.id === id);
           return (
             <Card key={id}>
               <CardHeader>
                 <CardTitle>
+                  {account.phase === "later" ? "Later · " : ""}
                   {account.label} · {usage?.sent ?? 0} / {account.dailyCap} today
                 </CardTitle>
               </CardHeader>

@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { accounts } from "@/lib/accounts";
+import { accounts, liveAccountIds } from "@/lib/accounts";
 import { fixtures } from "@/lib/fixtures";
 import { decide, hardFails, PASS_MARK, SCORE_MAX } from "@/lib/policy";
 
@@ -27,10 +27,11 @@ export default function TestsPage() {
       <div className="flex flex-col gap-2">
         <h1 className="font-heading text-2xl font-medium">Test pack</h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          {matched} of {rows.length} cases match the expected handoff or reply. A human round still
-          needs both testers at {PASS_MARK} out of {SCORE_MAX} before Pat sees a reply. One
-          blocklist leak fails the round. At least 9 of 10 ordinary replies must pass, and every
-          handoff must hand off.
+          {matched} of {rows.length} cases match the expected handoff or reply. The Threads rows are
+          the ones in this build. The others are kept for the next slice. A human round still needs
+          both testers at {PASS_MARK} out of {SCORE_MAX} before Pat sees a reply. One blocklist leak
+          fails the round. At least 9 of 10 ordinary replies must pass, and every handoff must hand
+          off.
         </p>
       </div>
       <div className="overflow-x-auto rounded-xl ring-1 ring-foreground/10">
@@ -46,7 +47,10 @@ export default function TestsPage() {
           <tbody>
             {rows.map((row) => (
               <tr key={row.fixture.id} className="border-t border-border align-top">
-                <td className="px-3 py-3 whitespace-nowrap">{accounts[row.fixture.accountId].short}</td>
+                <td className="px-3 py-3 whitespace-nowrap">
+                  {accounts[row.fixture.accountId].short}
+                  {liveAccountIds.includes(row.fixture.accountId) ? "" : " · later"}
+                </td>
                 <td className="px-3 py-3">
                   <p>{row.fixture.comment}</p>
                   {row.fixture.suggestedDraft ? (

@@ -1,6 +1,6 @@
 # Engagement assistant
 
-A local desk for reviewing social replies for Pat Villaceran and CITY JAM. Testers score each reply. Pat approves the exact text. Nothing is sent to a live network.
+A local desk for reviewing social replies for Pat Villaceran and CITY JAM. This build runs on Threads only. Testers score each reply. Pat approves the exact text. Nothing is sent to a live network. X, Instagram, and LinkedIn stay in the brief.
 
 The brief is [docs/approach.md](docs/approach.md). Mock comments stand in for Threads, Instagram, X, and LinkedIn, so the desk can be used before any API permission exists.
 
@@ -27,7 +27,7 @@ Scores and names are stored in `data/desk-state.json`. That file is local and is
 - Edit the text after approval and watch the approval clear.
 - Read Voices, Metrics, the Test pack, and Limits for the caps and the open gaps.
 
-Threads stays with [Threadify](https://www.threadify.app/). This desk does not publish there.
+Threads replies are reviewed here. [Threadify](https://www.threadify.app/) can still schedule posts. The live Threads API is not called.
 
 ## Deployment
 

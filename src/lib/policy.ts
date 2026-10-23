@@ -115,12 +115,6 @@ export function decide(input: {
       reason: "Hand off. A commercial approach goes to a person. The desk offers no terms.",
     };
   }
-  if (input.accountId === "threads") {
-    return {
-      action: "handoff",
-      reason: "Hand off to Threadify. This desk does not publish Threads replies.",
-    };
-  }
   if (input.category === "dating-love") {
     return {
       action: "handoff",
@@ -153,6 +147,65 @@ export function decide(input: {
     return { action: "reply", reason: "This sits inside the CITY JAM voice." };
   }
   return { action: "handoff", reason: "Hand off. No voice covers this comment." };
+}
+
+export type Analysis = {
+  sentiment: "Positive" | "Neutral" | "Negative" | "Mixed";
+  intent: string;
+  topics: string[];
+  strategy: string;
+};
+
+export function analyse(input: {
+  accountId: AccountId;
+  category: Category;
+  signal: Signal;
+  text: string;
+}): Analysis {
+  const decision = decide(input);
+  const topics =
+    input.category === "music"
+      ? ["Independent music", "CITY JAM"]
+      : input.category === "dating-love"
+        ? ["Dating / love"]
+        : input.category === "corporate-music"
+          ? ["Corporate music industry"]
+          : input.category === "agents"
+            ? ["AI agents", "Innovation Philosophie"]
+            : ["Outside the voice guides"];
+  const askingToJoin = /waitlist|open yet|how do i join|add my name/i.test(input.text);
+  let sentiment: Analysis["sentiment"] = "Neutral";
+  let intent = "Comment";
+  if (input.signal === "hostile") {
+    sentiment = "Negative";
+    intent = "Accusation";
+  } else if (input.signal === "sensitive") {
+    sentiment = "Mixed";
+    intent = "Personal disclosure";
+  } else if (input.signal === "spam") {
+    intent = "Spam";
+  } else if (input.signal === "journalist") {
+    intent = "Press request";
+  } else if (input.signal === "partner") {
+    intent = "Partnership approach";
+  } else if (input.category === "dating-love") {
+    intent = "Dating question";
+  } else if (input.category === "corporate-music") {
+    intent = "Vendor evaluation";
+  } else if (input.category === "music") {
+    sentiment = "Positive";
+    intent = askingToJoin ? "Asks how to join" : "Question about the music";
+  } else if (input.category === "agents") {
+    sentiment = "Positive";
+    intent = "Question about the work";
+  }
+  const strategy =
+    decision.action === "handoff"
+      ? "Hand to a person. Do not post."
+      : askingToJoin
+        ? "Answer, and use the one approved waitlist link."
+        : "Answer in this account's voice. One point, then stop.";
+  return { sentiment, intent, topics, strategy };
 }
 
 export function hardFails(draft: string, accountId: AccountId) {

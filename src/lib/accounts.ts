@@ -15,6 +15,7 @@ export type Account = {
   label: string;
   short: string;
   platform: string;
+  phase: "now" | "later";
   speaksAs: string;
   subjects: string[];
   handsOff: string[];
@@ -33,6 +34,7 @@ export const accounts: Record<AccountId, Account> = {
     label: "Pat Villaceran on X",
     short: "Pat · X",
     platform: "X",
+    phase: "later",
     speaksAs: "Pat, in the first person, and shorter than LinkedIn.",
     subjects: ["His own work", "AI agents", "Innovation Philosophie"],
     handsOff: [
@@ -58,6 +60,7 @@ export const accounts: Record<AccountId, Account> = {
     label: "Pat Villaceran, personal LinkedIn",
     short: "Pat · LinkedIn",
     platform: "LinkedIn",
+    phase: "later",
     speaksAs: "Pat, in the first person. Fuller than X, and not a copy of an X post.",
     subjects: ["His own work", "AI agents", "Innovation Philosophie"],
     handsOff: [
@@ -84,6 +87,7 @@ export const accounts: Record<AccountId, Account> = {
     label: "CITY JAM on Instagram",
     short: "CITY JAM · Instagram",
     platform: "Instagram",
+    phase: "later",
     speaksAs: "CITY JAM. Independent music and the app's consumer features.",
     subjects: ["Independent music", "CITY JAM's consumer features", "The waitlist, when someone asks how to join"],
     handsOff: [
@@ -112,6 +116,7 @@ export const accounts: Record<AccountId, Account> = {
     label: "CITY JAM LinkedIn Page",
     short: "CITY JAM · LinkedIn Page",
     platform: "LinkedIn",
+    phase: "later",
     speaksAs: "The CITY JAM page. Use we only for the page, never for Pat.",
     subjects: ["Independent music", "CITY JAM's consumer features", "The waitlist, when someone asks how to join"],
     handsOff: [
@@ -136,26 +141,45 @@ export const accounts: Record<AccountId, Account> = {
   },
   threads: {
     id: "threads",
-    label: "Threads, held for Threadify",
-    short: "Threads · Threadify",
+    label: "CITY JAM on Threads",
+    short: "CITY JAM · Threads",
     platform: "Threads",
-    speaksAs: "The account Pat names for the 10,000-follower goal. Voice is not used here, because this desk does not publish.",
-    subjects: ["Threadify keeps posts, scheduling, and replies"],
-    handsOff: ["Every Threads conversation, until Pat moves replies onto this desk"],
-    samples: [],
-    send: "threadify",
+    phase: "now",
+    speaksAs: "CITY JAM on Threads. Independent music and the app's consumer features. Shorter than a LinkedIn reply.",
+    subjects: [
+      "Independent music",
+      "CITY JAM's consumer features",
+      "The waitlist, when someone asks how to join",
+    ],
+    handsOff: [
+      "AIFF",
+      "AI agents and Innovation Philosophie",
+      "Dating and love",
+      "The corporate music industry",
+      "Press, partners, abuse, spam, and sensitive topics",
+    ],
+    samples: [
+      "Yes. Artists who release on their own.",
+      "The app is on a waitlist for now. If you want independent music as it is released, add your name here: https://waitlist.cityjam.example/?utm_source=threads",
+    ],
+    send: "mock",
     dailyCap: 40,
-    api: "Threads Reply Management API, permission threads_manage_replies, on graph.threads.com. Not called by this desk.",
-    ceiling: "1,000 API replies in a rolling 24 hours. Posts are a separate quota of 250.",
-    access:
-      "If replies ever move here, the account owner authorises the Threads app. Until then Threadify holds the connection.",
+    api: "Threads Reply Management API, POST /{threads-reply-id}/replies, permission threads_manage_replies. This slice mock-publishes. It does not call the live API.",
+    ceiling: "1,000 API replies in a rolling 24 hours. Posts are a separate quota of 250. This desk caps replies at 40 a day.",
+    access: "The Threads account owner authorises the app. No password. Threadify can keep scheduling posts.",
     metric:
-      "About 10,000 followers on the account Pat names. Read the weekly count on the profile and in Threadify. This desk does not keep a second counter.",
+      "About 10,000 followers on this Threads account. The weekly count is read on the profile and in Threadify. This desk counts approved replies and waitlist links with utm_source=threads.",
   },
 };
 
+export const liveAccountIds = accountIds.filter((id) => accounts[id].phase === "now");
+
 export function isCityJam(accountId: AccountId) {
-  return accountId === "cityjam-instagram" || accountId === "cityjam-linkedin";
+  return (
+    accountId === "cityjam-instagram" ||
+    accountId === "cityjam-linkedin" ||
+    accountId === "threads"
+  );
 }
 
 export function isPat(accountId: AccountId) {

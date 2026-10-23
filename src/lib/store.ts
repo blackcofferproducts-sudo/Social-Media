@@ -21,7 +21,10 @@ export type SendRecord = {
   mode: "mock" | "manual";
 };
 
+const STORE_VERSION = 2;
+
 export type DeskState = {
+  version: number;
   revision: number;
   testerNames: { a: string; b: string };
   comments: Record<string, CommentRecord>;
@@ -42,6 +45,7 @@ function blankComment(draft: string): CommentRecord {
 
 function seed(): DeskState {
   return {
+    version: STORE_VERSION,
     revision: 0,
     testerNames: { a: "", b: "" },
     comments: Object.fromEntries(
@@ -65,7 +69,9 @@ export function getDesk(): DeskState {
   if (!fs.existsSync(filePath)) return base;
   try {
     const saved = JSON.parse(fs.readFileSync(filePath, "utf8")) as DeskState;
+    if (saved.version !== STORE_VERSION) return base;
     return {
+      version: STORE_VERSION,
       revision: saved.revision ?? 0,
       testerNames: saved.testerNames ?? { a: "", b: "" },
       sends: Array.isArray(saved.sends) ? saved.sends : [],
@@ -81,7 +87,7 @@ export function getDesk(): DeskState {
 
 function writeDesk(state: DeskState) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  const next = { ...state, revision: state.revision + 1 };
+  const next = { ...state, version: STORE_VERSION, revision: state.revision + 1 };
   fs.writeFileSync(filePath, JSON.stringify(next, null, 2));
   return next;
 }
