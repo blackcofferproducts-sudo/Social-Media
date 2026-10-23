@@ -6,7 +6,7 @@ The desk reviews replies for Pat Villaceran and for CITY JAM. It runs on mock co
 
 ## Current slice
 
-Everything already decided stays in this brief. The desk you can use now is Threads only. CITY JAM speaks there: independent music and the app's consumer features. A reply is mock-published only after both testers pass it and Pat approves that exact text. The cap is 40 replies a day, under the Threads ceiling of 1,000. X, Instagram, and LinkedIn stay written below and are not in the queue. Threadify can still schedule Threads posts. This desk reviews and mock-publishes the replies. Follower totals are still read on the profile and in Threadify. Waitlist links from this desk use `utm_source=threads`.
+Everything already decided stays in this brief. The desk now also drafts comments on other people's posts, on Threads, Instagram, X, and LinkedIn. A comment on someone else's post carries no link. Replies on CITY JAM's own Threads posts remain. The live slice for those replies is Threads only. CITY JAM speaks there: independent music and the app's consumer features. A reply is mock-published only after both testers pass it and Pat approves that exact text. The cap is 40 replies a day, under the Threads ceiling of 1,000. X, Instagram, and LinkedIn are in the queue when the task is a comment on someone else's post. Their own-post replies stay written below for a later slice. Threadify can still schedule Threads posts. This desk reviews and mock-publishes the replies. Follower totals are still read on the profile and in Threadify. Waitlist links from this desk use `utm_source=threads`.
 
 ## What working means
 

@@ -17,8 +17,8 @@ export function DeskShell({ children }: { children: React.ReactNode }) {
               <p className="font-heading text-3xl leading-tight font-medium">Engagement assistant</p>
             </div>
             <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-              Threads only for this build. Testers score. Pat approves the exact text. A later edit
-              goes through both again.
+              Comment on other people&apos;s posts, and reply on our own. Testers score. Pat approves the
+              exact text.
             </p>
           </div>
           <DeskNav />

@@ -1,5 +1,5 @@
 import type { AccountId } from "./accounts";
-import type { Category, Signal } from "./policy";
+import type { Category, Place, Signal } from "./policy";
 
 export type Fixture = {
   id: string;
@@ -11,7 +11,12 @@ export type Fixture = {
   signal: Signal;
   expected: "reply" | "handoff";
   suggestedDraft: string;
+  place?: Place;
 };
+
+export function placeOf(fixture: Fixture): Place {
+  return fixture.place ?? "own";
+}
 
 const waitlist = (source: string) =>
   `https://waitlist.cityjam.example/?utm_source=${source}`;
@@ -379,6 +384,129 @@ export const fixtures: Fixture[] = [
     post: "Independent music, on Threads.",
     comment: "Can you introduce the people at HINABI and share the HINA.BAND profile?",
     category: "music",
+    signal: "ordinary",
+    expected: "handoff",
+    suggestedDraft: "",
+  },
+  {
+    id: "out-threads-kitchen",
+    accountId: "threads",
+    place: "others",
+    author: "kitchen.takes",
+    post: "Their Threads post",
+    comment: "Finished a song in my kitchen at 1am. No label, just the take.",
+    category: "music",
+    signal: "ordinary",
+    expected: "reply",
+    suggestedDraft:
+      "That 1am take is the whole point. A lot of independent records start in a kitchen, before anyone else has an opinion.",
+  },
+  {
+    id: "out-threads-jam",
+    accountId: "threads",
+    place: "others",
+    author: "sunday.players",
+    post: "Their Threads post",
+    comment: "Looking for guitarists who want to jam this month. Not a paid session.",
+    category: "music",
+    signal: "ordinary",
+    expected: "reply",
+    suggestedDraft: "A jam with no brief is rare. Say which city, and people can actually turn up.",
+  },
+  {
+    id: "out-threads-spam",
+    accountId: "threads",
+    place: "others",
+    author: "follow.farm",
+    post: "Their Threads post",
+    comment: "I can get you 10,000 followers by Friday. Message me.",
+    category: "other",
+    signal: "spam",
+    expected: "handoff",
+    suggestedDraft: "",
+  },
+  {
+    id: "out-ig-vocal",
+    accountId: "cityjam-instagram",
+    place: "others",
+    author: "rough.vocal",
+    post: "Their Instagram post",
+    comment: "Left the rough vocal in the demo. It felt more honest than the polished one.",
+    category: "music",
+    signal: "ordinary",
+    expected: "reply",
+    suggestedDraft: "Leave the rough vocal. It is the part that sounds like a person.",
+  },
+  {
+    id: "out-ig-dating",
+    accountId: "cityjam-instagram",
+    place: "others",
+    author: "jazz.nights",
+    post: "Their Instagram post",
+    comment: "Looking for someone to date who loves late jazz sets.",
+    category: "dating-love",
+    signal: "ordinary",
+    expected: "handoff",
+    suggestedDraft: "",
+  },
+  {
+    id: "out-x-agent",
+    accountId: "pat-x",
+    place: "others",
+    author: "builder.ada",
+    post: "Their post on X",
+    comment: "Everyone is wrapping a chatbot and calling it an agent.",
+    category: "agents",
+    signal: "ordinary",
+    expected: "reply",
+    suggestedDraft: "A chatbot answers. An agent has a job, and a point where that job is finished.",
+  },
+  {
+    id: "out-x-music",
+    accountId: "pat-x",
+    place: "others",
+    author: "playlist.sam",
+    post: "Their post on X",
+    comment: "What should independent artists use to master a record?",
+    category: "music",
+    signal: "ordinary",
+    expected: "handoff",
+    suggestedDraft: "",
+  },
+  {
+    id: "out-li-founder",
+    accountId: "pat-linkedin",
+    place: "others",
+    author: "founder.row",
+    post: "Their LinkedIn post",
+    comment: "Founders keep demoing the model instead of showing the work the agent finished.",
+    category: "agents",
+    signal: "ordinary",
+    expected: "reply",
+    suggestedDraft:
+      "The model is the easy part to show. The work is knowing what finished looks like, and who is still accountable. That is the bit I keep coming back to.",
+  },
+  {
+    id: "out-li-page-release",
+    accountId: "cityjam-linkedin",
+    place: "others",
+    author: "own.release",
+    post: "Their LinkedIn post",
+    comment: "Our band released without a distributor. Terrifying, and fine.",
+    category: "music",
+    signal: "ordinary",
+    expected: "reply",
+    suggestedDraft:
+      "Releasing on your own is a real decision. The terrifying part usually means the music is still yours.",
+  },
+  {
+    id: "out-li-page-vendor",
+    accountId: "cityjam-linkedin",
+    place: "others",
+    author: "roster.tools",
+    post: "Their LinkedIn post",
+    comment: "We are comparing A&R vendors for a major-label roster. Recommendations welcome.",
+    category: "corporate-music",
     signal: "ordinary",
     expected: "handoff",
     suggestedDraft: "",

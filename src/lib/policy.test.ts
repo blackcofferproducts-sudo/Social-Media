@@ -56,6 +56,15 @@ describe("pass mark", () => {
     assert.equal(scoreTester({ hardFail: true, voice: 2, length: 2, useful: 2 }).passed, false);
   });
 
+  it("rejects a link dropped onto someone else's post", () => {
+    const fails = hardFails(
+      "Add your name here: https://waitlist.cityjam.example/?utm_source=threads",
+      "threads",
+      "others",
+    );
+    assert.ok(fails.some((fail) => fail.includes("does not carry a link")));
+  });
+
   it("rejects stock phrasing, American spelling, the blocklist, and the wrong voice", () => {
     const draft = "I'd be happy to help. The color is lovely, and HINABI can delve into AIFF.";
     const fails = hardFails(draft, "cityjam-instagram");

@@ -1,5 +1,7 @@
 import { accounts, isCityJam, isPat, type AccountId, type SendMode } from "./accounts";
 
+export type Place = "own" | "others";
+
 export type Category =
   | "music"
   | "dating-love"
@@ -161,6 +163,7 @@ export function analyse(input: {
   category: Category;
   signal: Signal;
   text: string;
+  place?: Place;
 }): Analysis {
   const decision = decide(input);
   const topics =
@@ -202,14 +205,19 @@ export function analyse(input: {
   const strategy =
     decision.action === "handoff"
       ? "Hand to a person. Do not post."
-      : askingToJoin
-        ? "Answer, and use the one approved waitlist link."
-        : "Answer in this account's voice. One point, then stop.";
+      : input.place === "others"
+        ? "Comment on their post. One specific point. No link."
+        : askingToJoin
+          ? "Answer, and use the one approved waitlist link."
+          : "Answer in this account's voice. One point, then stop.";
   return { sentiment, intent, topics, strategy };
 }
 
-export function hardFails(draft: string, accountId: AccountId) {
+export function hardFails(draft: string, accountId: AccountId, place: Place = "own") {
   const fails: string[] = [];
+  if (place === "others" && /https?:\/\/|waitlist\.cityjam/i.test(draft)) {
+    fails.push("A comment on someone else's post does not carry a link.");
+  }
   if (containsBlocklist(draft)) {
     fails.push("Blocklist: the reply uses a forbidden name or profile.");
   }
@@ -260,6 +268,7 @@ export type GateInput = {
   signal: Signal;
   comment: string;
   draft: string;
+  place?: Place;
   testerNames: { a: string; b: string };
   testerA: TesterScore | null;
   testerB: TesterScore | null;
@@ -293,7 +302,7 @@ export function evaluateGate(input: GateInput): Gate {
     decision.action === "handoff"
       ? []
       : [
-          ...hardFails(input.draft, input.accountId),
+          ...hardFails(input.draft, input.accountId, input.place ?? "own"),
           ...(input.draft.trim() === "" ? ["The reply is empty."] : []),
         ];
   const testerA = input.testerA ? scoreTester(input.testerA) : null;

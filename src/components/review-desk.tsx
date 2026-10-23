@@ -15,7 +15,7 @@ import {
   saveScoreAction,
 } from "@/app/actions";
 import { accounts } from "@/lib/accounts";
-import type { Fixture } from "@/lib/fixtures";
+import { placeOf, type Fixture } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
 import { analyse, evaluateGate, PASS_MARK, SCORE_MAX, type TesterScore } from "@/lib/policy";
 import type { CommentRecord } from "@/lib/store";
@@ -39,11 +39,13 @@ export function ReviewDesk({
 }) {
   const [draft, setDraft] = useState(record.draft);
   const account = accounts[fixture.accountId];
+  const onOthers = placeOf(fixture) === "others";
   const reading = analyse({
     accountId: fixture.accountId,
     category: fixture.category,
     signal: fixture.signal,
     text: fixture.comment,
+    place: placeOf(fixture),
   });
   const dirty = draft !== record.draft;
   const gate = evaluateGate({
@@ -52,6 +54,7 @@ export function ReviewDesk({
     signal: fixture.signal,
     comment: fixture.comment,
     draft,
+    place: placeOf(fixture),
     testerNames,
     testerA: dirty ? null : record.testerA,
     testerB: dirty ? null : record.testerB,
@@ -67,6 +70,7 @@ export function ReviewDesk({
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary">{account.short}</Badge>
           <Badge variant="outline">{categoryLabel[fixture.category]}</Badge>
+          <Badge variant="outline">{onOthers ? "On their post" : "On our post"}</Badge>
           <Badge variant="outline">{signalLabel[fixture.signal]}</Badge>
         </div>
         <Card>
@@ -82,13 +86,13 @@ export function ReviewDesk({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Post</CardTitle>
+            <CardTitle>{onOthers ? "Where it sits" : "Post"}</CardTitle>
           </CardHeader>
           <CardContent className="text-sm leading-6">{fixture.post}</CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>{fixture.author}</CardTitle>
+            <CardTitle>{onOthers ? `${fixture.author} wrote` : fixture.author}</CardTitle>
           </CardHeader>
           <CardContent className="text-base leading-7">{fixture.comment}</CardContent>
         </Card>
@@ -114,7 +118,13 @@ export function ReviewDesk({
       <div className="flex flex-col gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>{gate.decision.action === "reply" ? "Public reply" : "No public reply"}</CardTitle>
+            <CardTitle>
+              {gate.decision.action === "handoff"
+                ? "No public comment"
+                : onOthers
+                  ? "Comment on their post"
+                  : "Public reply"}
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <p className="text-sm leading-6">{gate.headline}</p>
@@ -127,7 +137,7 @@ export function ReviewDesk({
             ) : null}
             <form action={saveDraftAction} className="flex flex-col gap-3">
               <input type="hidden" name="commentId" value={fixture.id} />
-              <Label htmlFor="draft">Draft</Label>
+              <Label htmlFor="draft">{onOthers ? "Comment" : "Draft"}</Label>
               <Textarea
                 id="draft"
                 name="draft"
@@ -197,7 +207,7 @@ export function ReviewDesk({
               <form action={publishAction}>
                 <input type="hidden" name="commentId" value={fixture.id} />
                 <Button type="submit" variant="outline" disabled={!gate.canMockPublish}>
-                  Publish to the mock {account.platform} account
+                  {onOthers ? "Post the comment on the mock account" : `Publish to the mock ${account.platform} account`}
                 </Button>
               </form>
               <form action={manualAction}>

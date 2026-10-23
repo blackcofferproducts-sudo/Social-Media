@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { accounts, type AccountId } from "./accounts";
-import { fixtures } from "./fixtures";
+import { fixtures, placeOf } from "./fixtures";
 import { evaluateGate, type TesterScore } from "./policy";
 
 export type Outcome = "open" | "handed-off" | "mock-published" | "posted-by-pat";
@@ -106,6 +106,7 @@ export function gateFor(state: DeskState, commentId: string, day = kolkataDay())
     signal: fixture.signal,
     comment: fixture.comment,
     draft: record.draft,
+    place: placeOf(fixture),
     testerNames: state.testerNames,
     testerA: record.testerA,
     testerB: record.testerB,

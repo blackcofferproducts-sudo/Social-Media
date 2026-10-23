@@ -46,21 +46,26 @@ export default function MetricsPage() {
   const published = threads.filter((row) => row.record?.outcome === "mock-published");
   const handed = threads.filter((row) => row.record?.outcome === "handed-off");
   const withLink = published.filter((row) => row.record.draft.includes("utm_source=threads"));
+  const onOthers = records.filter(
+    (row) =>
+      (row.fixture.place ?? "own") === "others" &&
+      (row.record?.outcome === "mock-published" || row.record?.outcome === "posted-by-pat"),
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <h1 className="font-heading text-2xl font-medium">Metrics</h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          This build measures Threads. The waitlist and the other networks stay in the brief. This
-          desk counts replies Pat approved on Threads, and links those replies carried. It does not
-          invent follower totals.
+          Comments on other people&apos;s posts are counted across Threads, Instagram, X, and
+          LinkedIn. Follower totals are still read on each profile. This desk does not invent them.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <Metric value={String(published.length)} label="Threads mock publishes" />
         <Metric value={String(withLink.length)} label="Threads replies with the waitlist link" />
         <Metric value={String(handed.length)} label="Threads comments handed to a person" />
+        <Metric value={String(onOthers.length)} label="Comments posted on other people's posts" />
       </div>
       <div className="flex flex-col gap-3">
         {targets.map((target) => (

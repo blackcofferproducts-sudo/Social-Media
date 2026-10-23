@@ -1,39 +1,54 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { accounts, liveAccountIds } from "@/lib/accounts";
-import { fixtures } from "@/lib/fixtures";
+import { accountIds, accounts } from "@/lib/accounts";
+import { fixtures, placeOf } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
 import { gateFor, getDesk } from "@/lib/store";
 
 export default async function QueuePage({
   searchParams,
 }: {
-  searchParams: Promise<{ account?: string }>;
+  searchParams: Promise<{ view?: string; account?: string }>;
 }) {
-  const { account } = await searchParams;
-  const selected = liveAccountIds.find((id) => id === account);
+  const params = await searchParams;
+  const view = params.view === "replies" ? "replies" : "others";
+  const selected = accountIds.find((id) => id === params.account);
   const desk = getDesk();
-  const rows = fixtures.filter(
-    (fixture) =>
-      liveAccountIds.includes(fixture.accountId) &&
-      (!selected || fixture.accountId === selected),
-  );
+  const rows = fixtures.filter((fixture) => {
+    const place = placeOf(fixture);
+    if (view === "replies") return place === "own" && fixture.accountId === "threads";
+    if (place !== "others") return false;
+    return !selected || fixture.accountId === selected;
+  });
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <h1 className="font-heading text-2xl font-medium">Queue</h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          This build is Threads only. Mock replies for CITY JAM, scored by two testers, then
-          approved by Pat before a mock publish. X, Instagram, and LinkedIn stay in the brief for
-          the next slice. Threadify can still schedule posts.
+          Commenting on other people&apos;s posts is how this desk grows reach. Threads, Instagram,
+          X, and LinkedIn are all in that queue. Replies on CITY JAM&apos;s own Threads posts stay
+          available too. Pat still approves the exact text, and a comment on someone else&apos;s
+          post does not carry a link.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
-        {liveAccountIds.map((id) => (
-          <Filter key={id} href="/" current label={accounts[id].short} />
-        ))}
+        <Filter href="/" current={view === "others"} label="On other people's posts" />
+        <Filter href="/?view=replies" current={view === "replies"} label="Replies on our Threads" />
       </div>
+      {view === "others" ? (
+        <div className="flex flex-wrap gap-2">
+          <Filter href="/" current={!selected} label="All channels" />
+          {accountIds.map((id) => (
+            <Filter
+              key={id}
+              href={`/?account=${id}`}
+              current={selected === id}
+              label={accounts[id].short}
+            />
+          ))}
+        </div>
+      ) : null}
       <ul className="flex flex-col gap-3">
         {rows.map((fixture) => {
           const gate = gateFor(desk, fixture.id);

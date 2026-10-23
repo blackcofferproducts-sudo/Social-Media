@@ -1,6 +1,6 @@
 # Engagement assistant
 
-A local desk for reviewing social replies for Pat Villaceran and CITY JAM. This build runs on Threads only. Testers score each reply. Pat approves the exact text. Nothing is sent to a live network. X, Instagram, and LinkedIn stay in the brief.
+A local desk for reviewing social replies for Pat Villaceran and CITY JAM. It drafts comments on other people's posts across Threads, Instagram, X, and LinkedIn, and it still replies on CITY JAM's own Threads posts. Testers score each text. Pat approves the exact wording. Nothing is sent to a live network.
 
 The brief is [docs/approach.md](docs/approach.md). Mock comments stand in for Threads, Instagram, X, and LinkedIn, so the desk can be used before any API permission exists.
 
@@ -20,7 +20,7 @@ Scores and names are stored in `data/desk-state.json`. That file is local and is
 
 ## What you can do
 
-- Read the queue and open a comment.
+- Open the queue. It starts on other people's posts. Switch to replies on our own Threads posts when you want those.
 - See whether the voice guide allows a reply, or the case must be handed to a person.
 - Write the two tester names on Limits. Until those names are saved, Pat's approval stays shut.
 - Score a reply, have Pat approve that text, then mock-publish a CITY JAM reply or record that Pat posted an X or personal LinkedIn draft himself.
