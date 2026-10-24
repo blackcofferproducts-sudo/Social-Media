@@ -44,8 +44,8 @@ export const accounts: Record<AccountId, Account> = {
       "Press, partners, abuse, spam, and sensitive topics",
     ],
     samples: [
-      "They finish a job. A chatbot answers. An agent I care about has a task, tools, and a point where the work is done.",
-      "I write that down before it starts. Innovation Philosophie, for me, is knowing what the work is and who remains accountable when the agent has finished.",
+      "No. If it only chats, I don't call it an agent. The ones I work on get a task and tools, and they stop when the job is actually done.",
+      "Before it runs. I write down the job, and who is still responsible when it stops. That is what Innovation Philosophie means for me: the work is named, and a person stays accountable.",
     ],
     send: "draft-only",
     dailyCap: 20,
@@ -70,7 +70,7 @@ export const accounts: Record<AccountId, Account> = {
       "Press, partners, abuse, spam, and sensitive topics",
     ],
     samples: [
-      "Start from the job you want finished, not from the model. I use Innovation Philosophie for that: what the work is, who is accountable, and where the agent should stop. The demo can wait.",
+      "Pick the job you want finished before you pick a model. I use Innovation Philosophie for that: what the work is, who is accountable, and where the agent should stop. The demo can come after.",
     ],
     send: "draft-only",
     dailyCap: 10,
@@ -98,8 +98,8 @@ export const accounts: Record<AccountId, Account> = {
       "Press, partners, abuse, spam, and sensitive topics",
     ],
     samples: [
-      "Yes. Independent artists, and an app for finding them.",
-      "The app is on a waitlist for now. CITY JAM is where you find music from artists who release on their own. You can add your name here: https://waitlist.cityjam.example/?utm_source=instagram",
+      "Yes. These are artists who put the music out themselves. The app is for finding them, not another copy of the same playlists.",
+      "Not open yet. The app is on a waitlist. CITY JAM is for finding music from people who release it themselves. Add your name here: https://waitlist.cityjam.example/?utm_source=instagram",
     ],
     send: "mock",
     dailyCap: 25,
@@ -127,7 +127,7 @@ export const accounts: Record<AccountId, Account> = {
       "Press, partners, abuse, spam, and sensitive topics",
     ],
     samples: [
-      "It is on the waitlist for now. CITY JAM is the app for finding independent music, and you can add your name here: https://waitlist.cityjam.example/?utm_source=linkedin_company",
+      "Not yet. It is on the waitlist. CITY JAM is the app for finding independent music. You can add your name here: https://waitlist.cityjam.example/?utm_source=linkedin_company",
     ],
     send: "mock",
     dailyCap: 10,
@@ -159,8 +159,8 @@ export const accounts: Record<AccountId, Account> = {
       "Press, partners, abuse, spam, and sensitive topics",
     ],
     samples: [
-      "Yes. Artists who release on their own.",
-      "The app is on a waitlist for now. If you want independent music as it is released, add your name here: https://waitlist.cityjam.example/?utm_source=threads",
+      "Yes. People who put their own music out, not another playlist.",
+      "Not yet. The app is on a waitlist. If you want music from people who release it themselves, add your name here: https://waitlist.cityjam.example/?utm_source=threads",
     ],
     send: "mock",
     dailyCap: 40,
