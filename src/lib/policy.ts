@@ -54,6 +54,10 @@ const AI_PHRASES = [
   "in today's world",
   "in today’s world",
   "certainly",
+  "easy to follow",
+  "for that slot",
+  "clear offer",
+  "heavy song for",
 ];
 
 const AMERICAN: Array<[RegExp, string]> = [
@@ -233,8 +237,8 @@ export function commentBrief(input: {
   const joining = asksToJoin(input.text) && place === "own" && isCityJam(input.accountId);
   const loss = describesALoss(input.text);
   const communication = isPat(input.accountId)
-    ? "Pat, in the first person. One plain point about the detail they raised. No slogan."
-    : "CITY JAM. One plain point about their music or the app. No slogan, and not Pat's voice.";
+    ? "Pat, talking as himself. One reaction, not a paragraph. No slogan."
+    : "A person replying. React to one thing they said. Don't summarise the post, and don't grade it.";
   const goal = isPat(input.accountId)
     ? "A conversation about his work, agents, and Innovation Philosophie. Not a CITY JAM sign-up."
     : loss && place === "others"

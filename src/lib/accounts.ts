@@ -145,7 +145,8 @@ export const accounts: Record<AccountId, Account> = {
     short: "CITY JAM · Threads",
     platform: "Threads",
     phase: "now",
-    speaksAs: "CITY JAM on Threads. Independent music and the app's consumer features. Shorter than a LinkedIn reply.",
+    speaksAs:
+      "A person on Threads, for CITY JAM. React to one thing they said. Don't summarise the post or grade it.",
     subjects: [
       "Independent music",
       "CITY JAM's consumer features",

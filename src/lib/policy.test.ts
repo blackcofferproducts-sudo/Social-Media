@@ -97,7 +97,14 @@ describe("pass mark", () => {
     const folk = fixtures.find((item) => item.id === "out-threads-folk-friday");
     assert.ok(folk);
     assert.deepEqual(hardFails(folk.suggestedDraft, folk.accountId, "others", folk.comment), []);
-    assert.doesNotMatch(folk.suggestedDraft, /daughter|accident|springsteen|\?/i);
+    assert.doesNotMatch(folk.suggestedDraft, /daughter|accident|springsteen|\?|easy to follow|for that slot/i);
+    const graded = hardFails(
+      "One tune each Friday is easy to follow. Branding Iron is a heavy song for that slot.",
+      folk.accountId,
+      "others",
+      folk.comment,
+    );
+    assert.ok(graded.some((fail) => fail.includes("easy to follow")));
     const brief = commentBrief({
       accountId: folk.accountId,
       text: folk.comment,

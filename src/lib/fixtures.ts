@@ -401,8 +401,7 @@ export const fixtures: Fixture[] = [
     category: "music",
     signal: "ordinary",
     expected: "reply",
-    suggestedDraft:
-      "One tune each Friday is easy to follow. Branding Iron is a heavy song for that slot.",
+    suggestedDraft: "Branding Iron. That's a lot for a Friday, I'm playing it anyway.",
   },
   {
     id: "out-threads-kitchen",
@@ -415,8 +414,7 @@ export const fixtures: Fixture[] = [
     category: "music",
     signal: "ordinary",
     expected: "reply",
-    suggestedDraft:
-      "Posting the phone recording is fine. Was the flat actually quiet, or did you just go for it anyway?",
+    suggestedDraft: "Phone at 1am in the kitchen. Yeah, I'd want that version.",
   },
   {
     id: "out-threads-jam",
@@ -429,8 +427,7 @@ export const fixtures: Fixture[] = [
     category: "music",
     signal: "ordinary",
     expected: "reply",
-    suggestedDraft:
-      "Manchester helps, people can tell if they can get there. What are you playing, and which week?",
+    suggestedDraft: "Manchester. What are you playing, and which week?",
   },
   {
     id: "out-threads-spam",
@@ -454,8 +451,7 @@ export const fixtures: Fixture[] = [
     category: "music",
     signal: "ordinary",
     expected: "reply",
-    suggestedDraft:
-      "I would leave the rough vocal in if that is the take you believed. What did the cleaned-up one lose?",
+    suggestedDraft: "Leave the rough vocal in. The clean one flattens it.",
   },
   {
     id: "out-ig-dating",
@@ -517,8 +513,7 @@ export const fixtures: Fixture[] = [
     category: "music",
     signal: "ordinary",
     expected: "reply",
-    suggestedDraft:
-      "Uploading it yourselves is pretty normal now. Did you send it to the stores, or did a friend handle that part?",
+    suggestedDraft: "No distributor and it's up. Did you upload it yourselves?",
   },
   {
     id: "out-li-page-vendor",
