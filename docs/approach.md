@@ -42,7 +42,9 @@ A public reply never names HINABI, KURATA, or HINA.BAND, and never shares those 
 
 Testers score. They do not approve. Nothing is posted or sent unless Pat approved that exact text. If the text changes, both testers score it again and Pat approves it again. Until a written scope names another lead and the accounts they may approve, only Pat's approval counts.
 
-The pass mark is 5 out of 6, with no hard fail. Hard fails are British English, stock AI phrasing, the blocklist, an invented fact, the wrong voice, an unapproved link, and a reply where the case requires a handoff. The scored checks are voice, length, and usefulness, each from 0 to 2. Both testers must pass. With the tester names blank, nothing reaches Pat.
+Every public comment is held to four things. Communication: one plain point in that account's voice. Goal: on someone else's post, a reply from them; on our post, an answer, with the waitlist link only when they asked how to join. Engagement: one question they can answer, unless the link is the next step. Rationality: only what their post supports, with no follower target and no promised result.
+
+The pass mark is 5 out of 6, with no hard fail. Testers score communication, engagement, and rationality, each from 0 to 2. The goal is fixed for the case. A draft that fights it fails before scoring. Other hard fails are British English, stock AI phrasing, the blocklist, an invented fact, the wrong voice, an unapproved link, and a reply where the case requires a handoff. Both testers must pass. With the tester names blank, nothing reaches Pat.
 
 ## Threadify
 

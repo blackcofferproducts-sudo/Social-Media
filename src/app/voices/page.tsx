@@ -15,9 +15,10 @@ export default function VoicesPage() {
       <div className="flex flex-col gap-2">
         <h1 className="font-heading text-2xl font-medium">Voice guides</h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          This build uses the CITY JAM Threads voice. The other guides stay here, unchanged, for
-          the next slice. A reply that uses another account&apos;s subjects fails before it can
-          reach Pat.
+          The voice is how an account talks. The goal decides what that talk is for. CITY JAM
+          comments are for independent music, a reply from the other person, or a waitlist sign-up
+          when they asked how to join. Pat&apos;s comments are for a serious conversation about his
+          work. A reply that uses another account&apos;s subjects fails before it can reach him.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">

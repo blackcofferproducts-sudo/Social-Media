@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { accounts } from "./accounts";
-import { fixtures } from "./fixtures";
+import { fixtures, placeOf } from "./fixtures";
 import {
   analyse,
   decide,
@@ -13,7 +13,7 @@ import {
 } from "./policy";
 
 const names = { a: "Amina Shah", b: "Leo Park" };
-const passing = { hardFail: false, voice: 2, length: 2, useful: 2 };
+const passing = { hardFail: false, communication: 2, engagement: 2, rationality: 2 };
 
 describe("disposition", () => {
   for (const fixture of fixtures) {
@@ -34,7 +34,10 @@ describe("gold replies", () => {
 
   it("passes the automated checks", () => {
     for (const fixture of replies) {
-      assert.deepEqual(hardFails(fixture.suggestedDraft, fixture.accountId), []);
+      assert.deepEqual(
+        hardFails(fixture.suggestedDraft, fixture.accountId, placeOf(fixture), fixture.comment),
+        [],
+      );
     }
   });
 
@@ -47,13 +50,45 @@ describe("gold replies", () => {
 
 describe("pass mark", () => {
   it("passes at 5 out of 6 with no hard fail", () => {
-    assert.equal(scoreTester({ hardFail: false, voice: 2, length: 1, useful: 2 }).passed, true);
-    assert.equal(scoreTester({ hardFail: false, voice: 2, length: 1, useful: 2 }).points, PASS_MARK);
+    assert.equal(
+      scoreTester({ hardFail: false, communication: 2, engagement: 1, rationality: 2 }).passed,
+      true,
+    );
+    assert.equal(
+      scoreTester({ hardFail: false, communication: 2, engagement: 1, rationality: 2 }).points,
+      PASS_MARK,
+    );
   });
 
   it("fails at 4, and fails a hard fail even at 6", () => {
-    assert.equal(scoreTester({ hardFail: false, voice: 2, length: 1, useful: 1 }).passed, false);
-    assert.equal(scoreTester({ hardFail: true, voice: 2, length: 2, useful: 2 }).passed, false);
+    assert.equal(
+      scoreTester({ hardFail: false, communication: 2, engagement: 1, rationality: 1 }).passed,
+      false,
+    );
+    assert.equal(
+      scoreTester({ hardFail: true, communication: 2, engagement: 2, rationality: 2 }).passed,
+      false,
+    );
+  });
+
+  it("requires a question, keeps the waitlist link for a join ask, and keeps targets out", () => {
+    const music = fixtures.find((item) => item.id === "threads-music");
+    assert.ok(music);
+    const noQuestion = hardFails("Yes. People who put their own music out.", music.accountId, "own", music.comment);
+    assert.ok(noQuestion.some((fail) => fail.startsWith("Engagement:")));
+    const withLink = hardFails(
+      "Yes. Add your name here: https://waitlist.cityjam.example/?utm_source=threads",
+      music.accountId,
+      "own",
+      music.comment,
+    );
+    assert.ok(withLink.some((fail) => fail.startsWith("Goal:")));
+    const join = fixtures.find((item) => item.id === "threads-waitlist");
+    assert.ok(join);
+    const missingLink = hardFails("Not yet. It is on a waitlist.", join.accountId, "own", join.comment);
+    assert.ok(missingLink.some((fail) => fail.includes("one waitlist link")));
+    const leaked = hardFails("We are aiming for 10,000 followers.", "threads", "others", "Nice song?");
+    assert.ok(leaked.some((fail) => fail.startsWith("Rationality:")));
   });
 
   it("rejects a link dropped onto someone else's post", () => {
@@ -146,7 +181,7 @@ describe("Pat's gate", () => {
       text: threads.comment,
     });
     assert.equal(reading.sentiment, "Positive");
-    assert.equal(reading.strategy.startsWith("Answer"), true);
+    assert.equal(reading.strategy, "Answer the music question. Keep the waitlist link out until they ask how to join.");
 
     const pat = fixtures.find((item) => item.id === "x-agents-short");
     assert.ok(pat);

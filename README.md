@@ -23,7 +23,7 @@ Scores and names are stored in `data/desk-state.json`. That file is local and is
 - Open the queue. It starts on other people's posts. Switch to replies on our own Threads posts when you want those.
 - See whether the voice guide allows a reply, or the case must be handed to a person.
 - Write the two tester names on Limits. Until those names are saved, Pat's approval stays shut.
-- Score a reply, have Pat approve that text, then mock-publish a CITY JAM reply or record that Pat posted an X or personal LinkedIn draft himself.
+- Score communication, engagement, and rationality. The goal for that comment is fixed on the card. Have Pat approve that text, then mock-publish a CITY JAM reply or record that Pat posted an X or personal LinkedIn draft himself.
 - Edit the text after approval and watch the approval clear.
 - Read Voices, Metrics, the Test pack, and Limits for the caps and the open gaps.
 

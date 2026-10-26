@@ -13,7 +13,7 @@ const targets = [
   {
     name: "Threads followers",
     target: "About 10,000 on the CITY JAM Threads account.",
-    movedBy: "Threads replies from this desk, plus posts Threadify may still schedule.",
+    movedBy: "Comments that earn a reply, plus posts Threadify may still schedule. The follower number is not written into a comment.",
     measured: "Weekly follower count on that profile, and in Threadify. One number, not two.",
   },
   {
@@ -57,8 +57,10 @@ export default function MetricsPage() {
       <div className="flex flex-col gap-2">
         <h1 className="font-heading text-2xl font-medium">Metrics</h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          Comments on other people&apos;s posts are counted across Threads, Instagram, X, and
-          LinkedIn. Follower totals are still read on each profile. This desk does not invent them.
+          A comment on someone else&apos;s post serves engagement: it counts here only after Pat
+          approves it, and it is meant to earn a reply, not a follower number. A waitlist link
+          serves the sign-up goal, and only on our own post when they asked how to join. This desk
+          does not invent sign-ups or follower totals.
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-3">

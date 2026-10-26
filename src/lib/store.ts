@@ -21,7 +21,7 @@ export type SendRecord = {
   mode: "mock" | "manual";
 };
 
-const STORE_VERSION = 3;
+const STORE_VERSION = 4;
 
 export type DeskState = {
   version: number;

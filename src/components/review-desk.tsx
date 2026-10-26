@@ -17,13 +17,20 @@ import {
 import { accounts } from "@/lib/accounts";
 import { placeOf, type Fixture } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
-import { analyse, evaluateGate, PASS_MARK, SCORE_MAX, type TesterScore } from "@/lib/policy";
+import {
+  analyse,
+  commentBrief,
+  evaluateGate,
+  PASS_MARK,
+  SCORE_MAX,
+  type TesterScore,
+} from "@/lib/policy";
 import type { CommentRecord } from "@/lib/store";
 
 const marks = [
-  { name: "voice", label: "Sounds like this account" },
-  { name: "length", label: "Length fits, and the batch varies" },
-  { name: "useful", label: "Useful to the person who wrote" },
+  { name: "communication", label: "Communication. 2 sounds like a person. 0 sounds like a caption." },
+  { name: "engagement", label: "Engagement. 2 gives them one thing to answer. 0 does not." },
+  { name: "rationality", label: "Rationality. 2 follows from their post and the goal. 0 guesses or promises a result." },
 ] as const;
 
 export function ReviewDesk({
@@ -40,6 +47,11 @@ export function ReviewDesk({
   const [draft, setDraft] = useState(record.draft);
   const account = accounts[fixture.accountId];
   const onOthers = placeOf(fixture) === "others";
+  const brief = commentBrief({
+    accountId: fixture.accountId,
+    text: fixture.comment,
+    place: placeOf(fixture),
+  });
   const reading = analyse({
     accountId: fixture.accountId,
     category: fixture.category,
@@ -95,6 +107,29 @@ export function ReviewDesk({
             <CardTitle>{onOthers ? `${fixture.author} wrote` : fixture.author}</CardTitle>
           </CardHeader>
           <CardContent className="text-base leading-7">{fixture.comment}</CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>What this comment is for</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm leading-6">
+            <p>
+              <span className="font-medium">Communication. </span>
+              {brief.communication}
+            </p>
+            <p>
+              <span className="font-medium">Goal. </span>
+              {brief.goal}
+            </p>
+            <p>
+              <span className="font-medium">Engagement. </span>
+              {brief.engagement}
+            </p>
+            <p>
+              <span className="font-medium">Rationality. </span>
+              {brief.rationality}
+            </p>
+          </CardContent>
         </Card>
         <Card>
           <CardHeader>
@@ -191,8 +226,10 @@ export function ReviewDesk({
           </CardHeader>
           <CardContent className="flex flex-col gap-3 text-sm leading-6">
             <p>
-              Pass mark is {PASS_MARK} out of {SCORE_MAX}. Testers do not approve. Any edit after
-              this point needs both testers and Pat again.
+              Pass mark is {PASS_MARK} out of {SCORE_MAX}, on communication, engagement, and
+              rationality. The goal is fixed on the card. A draft that fights it fails before
+              scoring. Testers do not approve. Any edit after this point needs both testers and Pat
+              again.
             </p>
             <p>
               {account.short}: {sentToday} of {account.dailyCap} used today, Asia/Kolkata.

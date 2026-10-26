@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { accounts, liveAccountIds } from "@/lib/accounts";
-import { fixtures } from "@/lib/fixtures";
+import { fixtures, placeOf } from "@/lib/fixtures";
 import { decide, hardFails, PASS_MARK, SCORE_MAX } from "@/lib/policy";
 
 const rejected =
@@ -15,7 +15,9 @@ export default function TestsPage() {
       text: fixture.comment,
     });
     const draftProblems =
-      fixture.expected === "reply" ? hardFails(fixture.suggestedDraft, fixture.accountId) : [];
+      fixture.expected === "reply"
+        ? hardFails(fixture.suggestedDraft, fixture.accountId, placeOf(fixture), fixture.comment)
+        : [];
     const matched = decision.action === fixture.expected && draftProblems.length === 0;
     return { fixture, decision, draftProblems, matched };
   });
@@ -29,7 +31,8 @@ export default function TestsPage() {
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
           {matched} of {rows.length} cases match the expected handoff or reply. The Threads rows are
           the ones in this build. The others are kept for the next slice. A human round still needs
-          both testers at {PASS_MARK} out of {SCORE_MAX} before Pat sees a reply. One blocklist leak
+          both testers at {PASS_MARK} out of {SCORE_MAX} on communication, engagement, and rationality
+          before Pat sees a reply. The goal is fixed per case. One blocklist leak
           fails the round. At least 9 of 10 ordinary replies must pass, and every handoff must hand
           off.
         </p>

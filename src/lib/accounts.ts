@@ -44,8 +44,8 @@ export const accounts: Record<AccountId, Account> = {
       "Press, partners, abuse, spam, and sensitive topics",
     ],
     samples: [
-      "No. If it only chats, I don't call it an agent. The ones I work on get a task and tools, and they stop when the job is actually done.",
-      "Before it runs. I write down the job, and who is still responsible when it stops. That is what Innovation Philosophie means for me: the work is named, and a person stays accountable.",
+      "No. If it only chats, I don't call it an agent. Mine get a task and tools, and they stop when the job is done. What job are you trying to finish?",
+      "Before it runs. I write down the job, and who is still responsible when it stops. That is what Innovation Philosophie means for me. What job are you handing the agent?",
     ],
     send: "draft-only",
     dailyCap: 20,
@@ -70,7 +70,7 @@ export const accounts: Record<AccountId, Account> = {
       "Press, partners, abuse, spam, and sensitive topics",
     ],
     samples: [
-      "Pick the job you want finished before you pick a model. I use Innovation Philosophie for that: what the work is, who is accountable, and where the agent should stop. The demo can come after.",
+      "Pick the job you want finished before you pick a model. I use Innovation Philosophie for that: what the work is, who is accountable, and where the agent should stop. Which job is still being shown as a demo?",
     ],
     send: "draft-only",
     dailyCap: 10,
@@ -98,8 +98,8 @@ export const accounts: Record<AccountId, Account> = {
       "Press, partners, abuse, spam, and sensitive topics",
     ],
     samples: [
-      "Yes. These are artists who put the music out themselves. The app is for finding them, not another copy of the same playlists.",
-      "Not open yet. The app is on a waitlist. CITY JAM is for finding music from people who release it themselves. Add your name here: https://waitlist.cityjam.example/?utm_source=instagram",
+      "Yes. These are artists who put the music out themselves, not another copy of the same playlists. Which of those playlists are you trying to get away from?",
+      "Not open yet. The app is on a waitlist, for music from people who release it themselves. Add your name here: https://waitlist.cityjam.example/?utm_source=instagram",
     ],
     send: "mock",
     dailyCap: 25,
@@ -159,7 +159,7 @@ export const accounts: Record<AccountId, Account> = {
       "Press, partners, abuse, spam, and sensitive topics",
     ],
     samples: [
-      "Yes. People who put their own music out, not another playlist.",
+      "Yes. People who put their own music out, not another playlist. Which artists are you hoping to find?",
       "Not yet. The app is on a waitlist. If you want music from people who release it themselves, add your name here: https://waitlist.cityjam.example/?utm_source=threads",
     ],
     send: "mock",

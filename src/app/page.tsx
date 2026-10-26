@@ -26,10 +26,11 @@ export default async function QueuePage({
       <div className="flex flex-col gap-2">
         <h1 className="font-heading text-2xl font-medium">Queue</h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-          Commenting on other people&apos;s posts is how this desk grows reach. Threads, Instagram,
-          X, and LinkedIn are all in that queue. Replies on CITY JAM&apos;s own Threads posts stay
-          available too. Pat still approves the exact text, and a comment on someone else&apos;s
-          post does not carry a link.
+          Each comment is held to four things. Communication: talk like a person on that account,
+          one point, no slogan. Goal: on someone else&apos;s post, earn a reply; on our post, answer
+          them, and use the waitlist link only if they asked how to join. Engagement: give them one
+          thing to answer, unless that link is the next step. Rationality: say only what their post
+          supports. No follower numbers, and no promised result.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">

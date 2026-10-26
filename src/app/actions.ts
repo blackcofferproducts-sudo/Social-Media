@@ -23,9 +23,9 @@ function refresh(commentId?: string) {
 function scoreFrom(formData: FormData): TesterScore {
   return {
     hardFail: formData.get("hardFail") === "on",
-    voice: Number(formData.get("voice")),
-    length: Number(formData.get("length")),
-    useful: Number(formData.get("useful")),
+    communication: Number(formData.get("communication")),
+    engagement: Number(formData.get("engagement")),
+    rationality: Number(formData.get("rationality")),
   };
 }
 

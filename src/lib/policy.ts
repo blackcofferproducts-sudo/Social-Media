@@ -24,9 +24,16 @@ export type Decision = {
 
 export type TesterScore = {
   hardFail: boolean;
-  voice: number;
-  length: number;
-  useful: number;
+  communication: number;
+  engagement: number;
+  rationality: number;
+};
+
+export type CommentBrief = {
+  communication: string;
+  goal: string;
+  engagement: string;
+  rationality: string;
 };
 
 export const PASS_MARK = 5;
@@ -176,7 +183,7 @@ export function analyse(input: {
           : input.category === "agents"
             ? ["AI agents", "Innovation Philosophie"]
             : ["Outside the voice guides"];
-  const askingToJoin = /waitlist|open yet|how do i join|add my name/i.test(input.text);
+  const askingToJoin = asksToJoin(input.text);
   let sentiment: Analysis["sentiment"] = "Neutral";
   let intent = "Comment";
   if (input.signal === "hostile") {
@@ -205,18 +212,64 @@ export function analyse(input: {
   const strategy =
     decision.action === "handoff"
       ? "Hand to a person. Do not post."
-      : input.place === "others"
-        ? "Comment on their post. One specific point. No link."
-        : askingToJoin
-          ? "Answer, and use the one approved waitlist link."
-          : "Answer in this account's voice. One point, then stop.";
+      : commentBrief(input).goal;
   return { sentiment, intent, topics, strategy };
 }
 
-export function hardFails(draft: string, accountId: AccountId, place: Place = "own") {
+export function asksToJoin(text: string) {
+  return /waitlist|open yet|is the app open|how do i join|add my name/i.test(text);
+}
+
+export function commentBrief(input: {
+  accountId: AccountId;
+  text: string;
+  place?: Place;
+}): CommentBrief {
+  const place = input.place ?? "own";
+  const joining = asksToJoin(input.text) && place === "own" && isCityJam(input.accountId);
+  const communication = isPat(input.accountId)
+    ? "Pat, in the first person. One plain point about the detail they raised. No slogan."
+    : "CITY JAM. One plain point about their music or the app. No slogan, and not Pat's voice.";
+  const goal = isPat(input.accountId)
+    ? "A conversation about his work, agents, and Innovation Philosophie. Not a CITY JAM sign-up."
+    : joining
+      ? "They asked how to join. Use the one waitlist link, so a sign-up can be counted. No follower target."
+      : place === "others"
+        ? "A reply from them. That is the engagement. No link, and no follower or sign-up number."
+        : "Answer the music question. Keep the waitlist link out until they ask how to join.";
+  const engagement = joining
+    ? "The link is the next step. Do not add a second ask."
+    : "Ask one question that follows from what they wrote, so they can answer.";
+  const rationality =
+    "Only say what their post supports. Do not promise followers, sign-ups, or any other result. If a public reply would be a guess, hand it to a person.";
+  return { communication, goal, engagement, rationality };
+}
+
+export function hardFails(
+  draft: string,
+  accountId: AccountId,
+  place: Place = "own",
+  sourceText = "",
+) {
   const fails: string[] = [];
+  const joining = asksToJoin(sourceText) && place === "own" && isCityJam(accountId);
   if (place === "others" && /https?:\/\/|waitlist\.cityjam/i.test(draft)) {
     fails.push("A comment on someone else's post does not carry a link.");
+  }
+  if (!joining && draft.trim() !== "" && !draft.includes("?")) {
+    fails.push("Engagement: ask one question that follows from what they wrote.");
+  }
+  if (joining && !/waitlist\.cityjam/i.test(draft)) {
+    fails.push("Goal: they asked how to join, so use the one waitlist link.");
+  }
+  if (!joining && place !== "others" && /waitlist\.cityjam/i.test(draft)) {
+    fails.push("Goal: the waitlist link is only for someone who asked how to join.");
+  }
+  if (/\b(?:10[,.]?000|50[,.]?000|10k|50k)\b/i.test(draft)) {
+    fails.push("Rationality: internal targets stay out of a public reply.");
+  }
+  if (/\b(?:guaranteed|go viral|blow up)\b/i.test(draft)) {
+    fails.push("Rationality: do not promise a result.");
   }
   if (containsBlocklist(draft)) {
     fails.push("Blocklist: the reply uses a forbidden name or profile.");
@@ -243,12 +296,12 @@ export function hardFails(draft: string, accountId: AccountId, place: Place = "o
 }
 
 export function scoreTester(score: TesterScore) {
-  const voice = score.voice;
-  const length = score.length;
-  const useful = score.useful;
-  const marks = [voice, length, useful];
+  const communication = score.communication;
+  const engagement = score.engagement;
+  const rationality = score.rationality;
+  const marks = [communication, engagement, rationality];
   const marksValid = marks.every((mark) => mark === 0 || mark === 1 || mark === 2);
-  const points = marksValid ? voice + length + useful : 0;
+  const points = marksValid ? communication + engagement + rationality : 0;
   const problems: string[] = [];
   if (score.hardFail) problems.push("Tester marked a hard fail.");
   if (!marksValid) problems.push("Each scored check must be 0, 1, or 2.");
@@ -302,7 +355,7 @@ export function evaluateGate(input: GateInput): Gate {
     decision.action === "handoff"
       ? []
       : [
-          ...hardFails(input.draft, input.accountId, input.place ?? "own"),
+          ...hardFails(input.draft, input.accountId, input.place ?? "own", input.comment),
           ...(input.draft.trim() === "" ? ["The reply is empty."] : []),
         ];
   const testerA = input.testerA ? scoreTester(input.testerA) : null;

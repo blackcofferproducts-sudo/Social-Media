@@ -32,7 +32,7 @@ export const fixtures: Fixture[] = [
     signal: "ordinary",
     expected: "reply",
     suggestedDraft:
-      "Yes. These are artists who put the music out themselves. The app is for finding them, not another copy of the same playlists.",
+      "Yes. These are artists who put the music out themselves, not another copy of the same playlists. Which of those playlists are you trying to get away from?",
   },
   {
     id: "ig-music-waitlist",
@@ -43,7 +43,7 @@ export const fixtures: Fixture[] = [
     category: "music",
     signal: "ordinary",
     expected: "reply",
-    suggestedDraft: `Not open yet. The app is on a waitlist. CITY JAM is for finding music from people who release it themselves. Add your name here: ${waitlist("instagram")}`,
+    suggestedDraft: `Not open yet. The app is on a waitlist, for music from people who release it themselves. Add your name here: ${waitlist("instagram")}`,
   },
   {
     id: "ig-hostile",
@@ -143,7 +143,7 @@ export const fixtures: Fixture[] = [
     signal: "ordinary",
     expected: "reply",
     suggestedDraft:
-      "No. If it only chats, I don't call it an agent. The ones I work on get a task and tools, and they stop when the job is actually done.",
+      "No. If it only chats, I don't call it an agent. Mine get a task and tools, and they stop when the job is done. What job are you trying to finish?",
   },
   {
     id: "x-agents-stop",
@@ -155,7 +155,7 @@ export const fixtures: Fixture[] = [
     signal: "ordinary",
     expected: "reply",
     suggestedDraft:
-      "Before it runs. I write down the job, and who is still responsible when it stops. That is what Innovation Philosophie means for me: the work is named, and a person stays accountable.",
+      "Before it runs. I write down the job, and who is still responsible when it stops. That is what Innovation Philosophie means for me. What job are you handing the agent?",
   },
   {
     id: "x-music",
@@ -244,7 +244,7 @@ export const fixtures: Fixture[] = [
     signal: "ordinary",
     expected: "reply",
     suggestedDraft:
-      "Pick the job you want finished before you pick a model. I use Innovation Philosophie for that: what the work is, who is accountable, and where the agent should stop. The demo can come after.",
+      "Pick the job you want finished before you pick a model. I use Innovation Philosophie for that: what the work is, who is accountable, and where the agent should stop. Which job is still being shown as a demo?",
   },
   {
     id: "li-pat-corporate",
@@ -288,7 +288,8 @@ export const fixtures: Fixture[] = [
     category: "music",
     signal: "ordinary",
     expected: "reply",
-    suggestedDraft: "Yes. People who put their own music out, not another playlist.",
+    suggestedDraft:
+      "Yes. People who put their own music out, not another playlist. Which artists are you hoping to find?",
   },
   {
     id: "threads-waitlist",
@@ -440,7 +441,7 @@ export const fixtures: Fixture[] = [
     signal: "ordinary",
     expected: "reply",
     suggestedDraft:
-      "I would leave the rough vocal in. The cleaned-up take often loses the bit you liked when you recorded it.",
+      "I would leave the rough vocal in if that is the take you believed. What did the cleaned-up one lose?",
   },
   {
     id: "out-ig-dating",
@@ -465,7 +466,7 @@ export const fixtures: Fixture[] = [
     signal: "ordinary",
     expected: "reply",
     suggestedDraft:
-      "Seeing the same thing. If it only answers chat, it is not an agent yet. Give it a job, and a point where that job is finished.",
+      "If it only answers chat, I don't call it an agent yet. It needs a job, and a point where that job is finished. What job is the one you are looking at?",
   },
   {
     id: "out-x-music",
@@ -490,7 +491,7 @@ export const fixtures: Fixture[] = [
     signal: "ordinary",
     expected: "reply",
     suggestedDraft:
-      "Agreed. The model is the easy thing to put in a demo. I want to see what finished, and who is still accountable for it.",
+      "The model is the easy thing to put in a demo. I want to see what finished, and who is still accountable for it. Which job are they still only demoing?",
   },
   {
     id: "out-li-page-release",
