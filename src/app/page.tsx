@@ -28,8 +28,8 @@ export default async function QueuePage({
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
           Each comment is held to four things. Communication: talk like a person on that account,
           one point, no slogan. Goal: on someone else&apos;s post, earn a reply; on our post, answer
-          them, and use the waitlist link only if they asked how to join. Engagement: give them one
-          thing to answer, unless that link is the next step. Rationality: say only what their post
+          them, and use the waitlist link only if they asked how to join. Engagement: respond to
+          something they said. Ask a question only when the post left it open. Rationality: say only what their post
           supports. No follower numbers, and no promised result.
         </p>
       </div>

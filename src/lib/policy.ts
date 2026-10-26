@@ -247,8 +247,8 @@ export function commentBrief(input: {
   const engagement = joining
     ? "The link is the next step. Do not add a second ask."
     : loss
-      ? "Ask one question about the tune or the series. Do not ask them to recount the loss."
-      : "Ask one question that follows from what they wrote, so they can answer.";
+      ? "Respond to the song they named. A question is wrong when they already answered it. Do not ask them to recount the loss."
+      : "Respond to something they actually said. Ask a question only when the post left it open.";
   const rationality = loss
     ? "They already said what happened. Do not retell it, and do not use it to get a reply. Say only what the post supports."
     : "Only say what their post supports. Do not promise followers, sign-ups, or any other result. If a public reply would be a guess, hand it to a person.";
@@ -265,9 +265,6 @@ export function hardFails(
   const joining = asksToJoin(sourceText) && place === "own" && isCityJam(accountId);
   if (place === "others" && /https?:\/\/|waitlist\.cityjam/i.test(draft)) {
     fails.push("A comment on someone else's post does not carry a link.");
-  }
-  if (!joining && draft.trim() !== "" && !draft.includes("?")) {
-    fails.push("Engagement: ask one question that follows from what they wrote.");
   }
   if (joining && !/waitlist\.cityjam/i.test(draft)) {
     fails.push("Goal: they asked how to join, so use the one waitlist link.");

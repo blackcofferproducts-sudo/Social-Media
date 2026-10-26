@@ -402,7 +402,7 @@ export const fixtures: Fixture[] = [
     signal: "ordinary",
     expected: "reply",
     suggestedDraft:
-      "Folk Music Fridays is a clear offer: one tune, every Friday. Branding Iron is a heavy song for that slot. Are you asking people to start with this recording, or with another track from The Fabled City?",
+      "One tune each Friday is easy to follow. Branding Iron is a heavy song for that slot.",
   },
   {
     id: "out-threads-kitchen",

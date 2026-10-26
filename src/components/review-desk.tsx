@@ -29,7 +29,10 @@ import type { CommentRecord } from "@/lib/store";
 
 const marks = [
   { name: "communication", label: "Communication. 2 sounds like a person. 0 sounds like a caption." },
-  { name: "engagement", label: "Engagement. 2 gives them one thing to answer. 0 does not." },
+  {
+    name: "engagement",
+    label: "Engagement. 2 responds to something they said. 0 asks a question they already answered.",
+  },
   { name: "rationality", label: "Rationality. 2 follows from their post and the goal. 0 guesses or promises a result." },
 ] as const;
 

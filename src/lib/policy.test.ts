@@ -72,11 +72,11 @@ describe("pass mark", () => {
     );
   });
 
-  it("requires a question, keeps the waitlist link for a join ask, and keeps targets out", () => {
+  it("lets a plain answer stand, keeps the waitlist link for a join ask, and keeps targets out", () => {
     const music = fixtures.find((item) => item.id === "threads-music");
     assert.ok(music);
     const noQuestion = hardFails("Yes. People who put their own music out.", music.accountId, "own", music.comment);
-    assert.ok(noQuestion.some((fail) => fail.startsWith("Engagement:")));
+    assert.deepEqual(noQuestion, []);
     const withLink = hardFails(
       "Yes. Add your name here: https://waitlist.cityjam.example/?utm_source=threads",
       music.accountId,
@@ -96,14 +96,14 @@ describe("pass mark", () => {
     const folk = fixtures.find((item) => item.id === "out-threads-folk-friday");
     assert.ok(folk);
     assert.deepEqual(hardFails(folk.suggestedDraft, folk.accountId, "others", folk.comment), []);
-    assert.doesNotMatch(folk.suggestedDraft, /daughter|accident|springsteen/i);
+    assert.doesNotMatch(folk.suggestedDraft, /daughter|accident|springsteen|\?/i);
     const brief = commentBrief({
       accountId: folk.accountId,
       text: folk.comment,
       place: "others",
     });
     assert.match(brief.goal, /song they named/);
-    assert.match(brief.engagement, /Do not ask them to recount/);
+    assert.match(brief.engagement, /already answered/);
     assert.match(brief.rationality, /Do not retell it/);
   });
 
