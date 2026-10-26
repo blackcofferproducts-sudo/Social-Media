@@ -4,6 +4,7 @@ import { accounts } from "./accounts";
 import { fixtures, placeOf } from "./fixtures";
 import {
   analyse,
+  commentBrief,
   decide,
   evaluateGate,
   hardFails,
@@ -89,6 +90,21 @@ describe("pass mark", () => {
     assert.ok(missingLink.some((fail) => fail.includes("one waitlist link")));
     const leaked = hardFails("We are aiming for 10,000 followers.", "threads", "others", "Nice song?");
     assert.ok(leaked.some((fail) => fail.startsWith("Rationality:")));
+  });
+
+  it("keeps a comment on a song about a loss on the song", () => {
+    const folk = fixtures.find((item) => item.id === "out-threads-folk-friday");
+    assert.ok(folk);
+    assert.deepEqual(hardFails(folk.suggestedDraft, folk.accountId, "others", folk.comment), []);
+    assert.doesNotMatch(folk.suggestedDraft, /daughter|accident|springsteen/i);
+    const brief = commentBrief({
+      accountId: folk.accountId,
+      text: folk.comment,
+      place: "others",
+    });
+    assert.match(brief.goal, /song they named/);
+    assert.match(brief.engagement, /Do not ask them to recount/);
+    assert.match(brief.rationality, /Do not retell it/);
   });
 
   it("rejects a link dropped onto someone else's post", () => {

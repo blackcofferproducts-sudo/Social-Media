@@ -220,6 +220,10 @@ export function asksToJoin(text: string) {
   return /waitlist|open yet|is the app open|how do i join|add my name/i.test(text);
 }
 
+export function describesALoss(text: string) {
+  return /\b(?:daughter|son|died|death|killed|accident|suicide|funeral|grief)\b/i.test(text);
+}
+
 export function commentBrief(input: {
   accountId: AccountId;
   text: string;
@@ -227,21 +231,27 @@ export function commentBrief(input: {
 }): CommentBrief {
   const place = input.place ?? "own";
   const joining = asksToJoin(input.text) && place === "own" && isCityJam(input.accountId);
+  const loss = describesALoss(input.text);
   const communication = isPat(input.accountId)
     ? "Pat, in the first person. One plain point about the detail they raised. No slogan."
     : "CITY JAM. One plain point about their music or the app. No slogan, and not Pat's voice.";
   const goal = isPat(input.accountId)
     ? "A conversation about his work, agents, and Innovation Philosophie. Not a CITY JAM sign-up."
-    : joining
-      ? "They asked how to join. Use the one waitlist link, so a sign-up can be counted. No follower target."
-      : place === "others"
-        ? "A reply from them. That is the engagement. No link, and no follower or sign-up number."
-        : "Answer the music question. Keep the waitlist link out until they ask how to join.";
+    : loss && place === "others"
+      ? "A reply about the song they named. Not a comment on the loss, and no link."
+      : joining
+        ? "They asked how to join. Use the one waitlist link, so a sign-up can be counted. No follower target."
+        : place === "others"
+          ? "A reply from them. That is the engagement. No link, and no follower or sign-up number."
+          : "Answer the music question. Keep the waitlist link out until they ask how to join.";
   const engagement = joining
     ? "The link is the next step. Do not add a second ask."
-    : "Ask one question that follows from what they wrote, so they can answer.";
-  const rationality =
-    "Only say what their post supports. Do not promise followers, sign-ups, or any other result. If a public reply would be a guess, hand it to a person.";
+    : loss
+      ? "Ask one question about the tune or the series. Do not ask them to recount the loss."
+      : "Ask one question that follows from what they wrote, so they can answer.";
+  const rationality = loss
+    ? "They already said what happened. Do not retell it, and do not use it to get a reply. Say only what the post supports."
+    : "Only say what their post supports. Do not promise followers, sign-ups, or any other result. If a public reply would be a guess, hand it to a person.";
   return { communication, goal, engagement, rationality };
 }
 

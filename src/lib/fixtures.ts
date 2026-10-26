@@ -391,6 +391,20 @@ export const fixtures: Fixture[] = [
     suggestedDraft: "",
   },
   {
+    id: "out-threads-folk-friday",
+    accountId: "threads",
+    place: "others",
+    author: "The Nightwatchman",
+    post: "Their Threads post",
+    comment:
+      "FOLK MUSIC FRIDAYS!! Each and every Friday The Nightwatchman will be posting a tune “to comfort the disturbed and disturb the comfortable.” Today’s tune is “BRANDING IRON” off my album The Fabled City. A father’s swirling shadow thoughts in the wake of losing his daughter in a preventable industrial accident. Also, Bruce Springsteen’s favorite Nightwatchman jam.",
+    category: "music",
+    signal: "ordinary",
+    expected: "reply",
+    suggestedDraft:
+      "Folk Music Fridays is a clear offer: one tune, every Friday. Branding Iron is a heavy song for that slot. Are you asking people to start with this recording, or with another track from The Fabled City?",
+  },
+  {
     id: "out-threads-kitchen",
     accountId: "threads",
     place: "others",
