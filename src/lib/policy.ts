@@ -302,6 +302,119 @@ export function hardFails(
   return fails;
 }
 
+const IMPACT_STOP = new Set(
+  `this that with from your have been will they them their what when where which about just like into over after before because there here would could should today every each also were than then some more most only same very much many were been`.split(
+    /\s+/,
+  ),
+);
+
+function impactWords(text: string) {
+  return new Set(
+    (text.toLowerCase().match(/[a-z][a-z']{3,}/g) ?? []).filter((word) => !IMPACT_STOP.has(word)),
+  );
+}
+
+function sharedWords(draft: string, source: string) {
+  const sourceWords = impactWords(source);
+  let count = 0;
+  for (const word of impactWords(draft)) {
+    if (sourceWords.has(word)) count += 1;
+  }
+  return count;
+}
+
+function questionRepeats(draft: string, source: string) {
+  const mark = draft.indexOf("?");
+  if (mark < 0) return false;
+  const start = Math.max(draft.lastIndexOf(".", mark), draft.lastIndexOf("!", mark)) + 1;
+  const question = draft.slice(start, mark);
+  if (!/\bor\b/i.test(question)) return false;
+  const sourceWords = impactWords(source);
+  for (const word of impactWords(question)) {
+    if (sourceWords.has(word)) return true;
+  }
+  return false;
+}
+
+export type Impact = {
+  score: number;
+  band: "None" | "Low" | "Limited" | "Sound" | "Strong";
+  notes: string[];
+};
+
+export function rateImpact(input: {
+  accountId: AccountId;
+  category: Category;
+  signal: Signal;
+  comment: string;
+  draft: string;
+  place?: Place;
+}): Impact {
+  const decision = decide({
+    accountId: input.accountId,
+    category: input.category,
+    signal: input.signal,
+    text: input.comment,
+  });
+  if (decision.action === "handoff" || input.draft.trim() === "") {
+    return {
+      score: 0,
+      band: "None",
+      notes: ["No public comment, so there is no impact to count."],
+    };
+  }
+
+  const place = input.place ?? "own";
+  const notes: string[] = [];
+  let score = 0;
+  const shared = sharedWords(input.draft, input.comment);
+  if (shared >= 2) {
+    score += 3;
+    notes.push("It uses details from their post, so they can see it was written for them.");
+  } else if (shared === 1) {
+    score += 2;
+    notes.push("It picks up one detail from their post.");
+  } else {
+    notes.push("It does not use a detail from their post, so it is easy to ignore.");
+  }
+
+  const fails = hardFails(input.draft, input.accountId, place, input.comment);
+  const goalFail = fails.find((fail) => /Goal:|does not carry a link|voice|waitlist link is only/i.test(fail));
+  if (goalFail) notes.push(goalFail);
+  else {
+    score += 2;
+    notes.push("It fits the goal for this account.");
+  }
+
+  if (questionRepeats(input.draft, input.comment)) {
+    score = Math.max(0, score - 2);
+    notes.push("The question asks for a choice the post already made, so a reply is unlikely.");
+  } else if (input.draft.includes("?")) {
+    score += 3;
+    notes.push("It asks something the post left open, so a reply is more likely.");
+  } else if (shared >= 1) {
+    score += 1;
+    notes.push("It answers the post without asking them to explain it again. A reply is possible, not requested.");
+  } else {
+    notes.push("There is little reason for them to answer.");
+  }
+
+  const retells =
+    describesALoss(input.comment) &&
+    /\b(?:daughter|son|died|death|killed|accident|suicide|funeral|grief)\b/i.test(input.draft);
+  const unsafe = fails.find((fail) => /Rationality|Blocklist|Stock AI|British English/i.test(fail));
+  if (retells) notes.push("It retells the loss. That costs trust, so the impact is poor.");
+  else if (unsafe) notes.push(unsafe);
+  else {
+    score += 2;
+    notes.push("It only says what their post supports. This is not a count of replies or followers.");
+  }
+
+  const clamped = Math.max(0, Math.min(10, score));
+  const band = clamped === 0 ? "None" : clamped <= 4 ? "Low" : clamped <= 6 ? "Limited" : clamped <= 8 ? "Sound" : "Strong";
+  return { score: clamped, band, notes };
+}
+
 export function scoreTester(score: TesterScore) {
   const communication = score.communication;
   const engagement = score.engagement;

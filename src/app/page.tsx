@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { accountIds, accounts } from "@/lib/accounts";
 import { fixtures, placeOf } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
+import { rateImpact } from "@/lib/policy";
 import { gateFor, getDesk } from "@/lib/store";
 
 export default async function QueuePage({
@@ -53,6 +54,14 @@ export default async function QueuePage({
       <ul className="flex flex-col gap-3">
         {rows.map((fixture) => {
           const gate = gateFor(desk, fixture.id);
+          const impact = rateImpact({
+            accountId: fixture.accountId,
+            category: fixture.category,
+            signal: fixture.signal,
+            comment: fixture.comment,
+            draft: desk.comments[fixture.id]?.draft ?? "",
+            place: placeOf(fixture),
+          });
           return (
             <li key={fixture.id}>
               <Link
@@ -68,6 +77,8 @@ export default async function QueuePage({
                   <p className="text-xs text-muted-foreground">{categoryLabel[fixture.category]}</p>
                 </div>
                 <p className="max-w-xs shrink-0 text-sm text-muted-foreground sm:text-right">
+                  <span className="font-medium text-foreground">{impact.score}/10</span>
+                  {". "}
                   {gate?.headline}
                 </p>
               </Link>

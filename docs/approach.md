@@ -44,6 +44,8 @@ Testers score. They do not approve. Nothing is posted or sent unless Pat approve
 
 Every public comment is held to four things. Communication: one plain point in that account's voice. Goal: on someone else's post, a reply from them; on our post, an answer, with the waitlist link only when they asked how to join. Engagement: a response to something they said. A question only when the post left it open. The waitlist link is the next step when they asked how to join. Rationality: only what their post supports, with no follower target and no promised result.
 
+The desk also scores the likely impact of the draft from 0 to 10. The score reads whether the comment uses their details, fits the goal, could earn a reply, and says only what the post supports. It is not a count of replies, followers, or sign-ups. A comment that is handed to a person scores 0.
+
 The pass mark is 5 out of 6, with no hard fail. Testers score communication, engagement, and rationality, each from 0 to 2. The goal is fixed for the case. A draft that fights it fails before scoring. Other hard fails are British English, stock AI phrasing, the blocklist, an invented fact, the wrong voice, an unapproved link, and a reply where the case requires a handoff. Both testers must pass. With the tester names blank, nothing reaches Pat.
 
 ## Threadify

@@ -22,6 +22,7 @@ import {
   commentBrief,
   evaluateGate,
   PASS_MARK,
+  rateImpact,
   SCORE_MAX,
   type TesterScore,
 } from "@/lib/policy";
@@ -78,6 +79,14 @@ export function ReviewDesk({
     outcome: record.outcome,
   });
   const closed = record.outcome !== "open";
+  const impact = rateImpact({
+    accountId: fixture.accountId,
+    category: fixture.category,
+    signal: fixture.signal,
+    comment: fixture.comment,
+    draft,
+    place: placeOf(fixture),
+  });
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -154,6 +163,24 @@ export function ReviewDesk({
       </div>
 
       <div className="flex flex-col gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Likely impact {impact.score}/10
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm leading-6">
+            <p>
+              {impact.band}. This is a reading of the draft. It is not a count of replies, followers,
+              or sign-ups.
+            </p>
+            <ul className="flex flex-col gap-1 text-muted-foreground">
+              {impact.notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>

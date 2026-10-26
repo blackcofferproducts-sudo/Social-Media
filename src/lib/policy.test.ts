@@ -10,6 +10,7 @@ import {
   hardFails,
   namesAreSet,
   PASS_MARK,
+  rateImpact,
   scoreTester,
 } from "./policy";
 
@@ -105,6 +106,45 @@ describe("pass mark", () => {
     assert.match(brief.goal, /song they named/);
     assert.match(brief.engagement, /already answered/);
     assert.match(brief.rationality, /Do not retell it/);
+  });
+
+  it("scores likely impact out of 10, and marks a repeated choice lower", () => {
+    const folk = fixtures.find((item) => item.id === "out-threads-folk-friday");
+    assert.ok(folk);
+    const stated = rateImpact({
+      accountId: folk.accountId,
+      category: folk.category,
+      signal: folk.signal,
+      comment: folk.comment,
+      draft: folk.suggestedDraft,
+      place: "others",
+    });
+    const repeated = rateImpact({
+      accountId: folk.accountId,
+      category: folk.category,
+      signal: folk.signal,
+      comment: folk.comment,
+      draft:
+        "Are you asking people to start with this recording, or with another track from The Fabled City?",
+      place: "others",
+    });
+    assert.ok(stated.score >= 7 && stated.score <= 8, `statement scored ${stated.score}`);
+    assert.ok(repeated.score < stated.score, `repeated ${repeated.score} vs statement ${stated.score}`);
+    assert.ok(repeated.score <= 10 && stated.score <= 10);
+    assert.match(repeated.notes.join(" "), /already made/);
+
+    const spam = fixtures.find((item) => item.id === "out-threads-spam");
+    assert.ok(spam);
+    const none = rateImpact({
+      accountId: spam.accountId,
+      category: spam.category,
+      signal: spam.signal,
+      comment: spam.comment,
+      draft: "No thanks.",
+      place: "others",
+    });
+    assert.equal(none.score, 0);
+    assert.equal(none.band, "None");
   });
 
   it("rejects a link dropped onto someone else's post", () => {
