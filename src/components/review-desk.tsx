@@ -228,23 +228,21 @@ export function ReviewDesk({
             <form action={draftWithGrokAction} className="flex flex-col gap-2">
               <input type="hidden" name="commentId" value={fixture.id} />
               <p className="text-sm leading-6 text-muted-foreground">
-                {grokModel} writes the reply.
-                {grokModel === "Cursor"
-                  ? " That call uses Grok 4.7 on this Cursor account, because no xAI key is set."
-                  : ""}
+                {grokReady && grokModel !== "Cursor"
+                  ? `${grokModel} writes the reply.`
+                  : "Cursor writes the reply with Grok 4.7."}{" "}
                 The desk scores it out of 10, the testers score it, and Pat approves the exact text.
                 {record.source === "grok" && record.model ? ` This text is from ${record.model}.` : ""}
               </p>
               {record.grokNote ? <p className="text-sm leading-6">{record.grokNote}</p> : null}
               <GrokButton
-                disabled={closed || gate.decision.action === "handoff" || !grokReady}
-                label={record.source === "grok" ? `Ask ${grokModel} again` : `Ask ${grokModel}`}
+                disabled={closed || gate.decision.action === "handoff"}
+                label={
+                  record.source === "grok"
+                    ? `Ask ${grokReady && grokModel !== "Cursor" ? grokModel : "Cursor"} again`
+                    : `Ask ${grokReady && grokModel !== "Cursor" ? grokModel : "Cursor"}`
+                }
               />
-              {!grokReady ? (
-                <p className="text-sm leading-6 text-muted-foreground">
-                  Add XAI_API_KEY for Grok 4.7. Until a model key is set, the sheet voice stands in.
-                </p>
-              ) : null}
               {gate.decision.action === "handoff" ? (
                 <p className="text-sm leading-6 text-muted-foreground">
                   This one is a handoff, so {grokModel} does not write a public reply.

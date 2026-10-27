@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { roboticPhrase } from "./comment-model";
 import type { Fixture } from "./fixture";
@@ -8,16 +9,37 @@ import { hardFails } from "./policy";
 export const GROK_MODEL = "grok-4.7";
 const ENDPOINT = "https://api.x.ai/v1/chat/completions";
 
+function localEnv(name: string) {
+  const current = process.env[name]?.trim();
+  if (current) return current;
+  try {
+    const file = fs.readFileSync(path.join(process.cwd(), ".env.local"), "utf8");
+    for (const line of file.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eq = trimmed.indexOf("=");
+      if (eq < 1 || trimmed.slice(0, eq).trim() !== name) continue;
+      const value = trimmed.slice(eq + 1).trim().replace(/^['"]|['"]$/g, "");
+      if (!value) return "";
+      process.env[name] = value;
+      return value;
+    }
+  } catch {
+    return "";
+  }
+  return "";
+}
+
 export function grokModelName() {
-  return process.env.GROK_MODEL?.trim() || GROK_MODEL;
+  return localEnv("GROK_MODEL") || GROK_MODEL;
 }
 
 export function grokReady() {
-  return Boolean(process.env.XAI_API_KEY?.trim());
+  return Boolean(localEnv("XAI_API_KEY"));
 }
 
 export function cursorReady() {
-  return Boolean(process.env.CURSOR_API_KEY?.trim());
+  return Boolean(localEnv("CURSOR_API_KEY"));
 }
 
 export function drafterReady() {
@@ -115,7 +137,7 @@ export function rejectReply(draft: string, fixture: Fixture) {
 type FetchLike = typeof fetch;
 
 export async function askGrok(fixture: Fixture, fetchImpl: FetchLike = fetch) {
-  const key = process.env.XAI_API_KEY?.trim();
+  const key = localEnv("XAI_API_KEY");
   if (!key) {
     return {
       ok: false as const,
@@ -175,7 +197,7 @@ export async function askGrok(fixture: Fixture, fetchImpl: FetchLike = fetch) {
 }
 
 export async function askCursor(fixture: Fixture) {
-  const key = process.env.CURSOR_API_KEY?.trim();
+  const key = localEnv("CURSOR_API_KEY");
   if (!key) {
     return { ok: false as const, note: "CURSOR_API_KEY is not set." };
   }
