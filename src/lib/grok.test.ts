@@ -15,6 +15,11 @@ describe("grok", () => {
     assert.match(prompt.system, /No links/);
     assert.match(prompt.user, /how do i actually join/i);
     assert.match(prompt.user, /no links/i);
+    const folk = fixtures.find((item) => item.id === "out-threads-folk-friday");
+    assert.ok(folk);
+    const folkPrompt = grokPrompt(folk);
+    assert.match(folkPrompt.user, /song title/i);
+    assert.match(folkPrompt.system, /Do not mention the loss/);
     assert.doesNotMatch(`${prompt.system}\n${prompt.user}`, /XAI_API_KEY|Bearer /);
   });
 

@@ -15,6 +15,10 @@ const ROBOTIC = [
   /\bas an ai\b/i,
   /let me know if you need/i,
   /worth noting/i,
+  /stayed with me/i,
+  /^didn['’]t know\b/i,
+  /\blove this\b/i,
+  /\bso powerful\b/i,
 ];
 
 export function roboticPhrase(draft: string) {

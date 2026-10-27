@@ -4,7 +4,8 @@ import path from "node:path";
 import { roboticPhrase } from "./comment-model";
 import type { Fixture } from "./fixture";
 import { placeOf } from "./fixture";
-import { hardFails } from "./policy";
+import { accounts } from "./accounts";
+import { commentBrief, describesALoss, hardFails } from "./policy";
 
 export const GROK_MODEL = "grok-4.7";
 const ENDPOINT = "https://api.x.ai/v1/chat/completions";
@@ -55,24 +56,34 @@ export function drafterName() {
 export function grokPrompt(fixture: Fixture, speaker = "Grok 4.7") {
   const place = placeOf(fixture);
   const training = fixture.training;
+  const brief = commentBrief({ accountId: fixture.accountId, text: fixture.comment, place });
+  const loss = describesALoss(fixture.comment) && place === "others";
   const system = [
-    `You are ${speaker} writing one short public reply for CITY JAM on Threads.`,
-    "Sound like a person who typed it. One reaction to something they actually said.",
-    "British English. Spoken. One or two sentences when they only reacted. Up to three sentences when they asked how something works. Do not write a paragraph. No slogan, no summary of their post, and no grade of the song or the post.",
-    "Do not say: I won't, I will not, I'd be happy, certainly, delve, as an AI, easy to follow, for that slot, that's a lot for, playing it anyway.",
+    `You are ${speaker} writing one short public comment.`,
+    "Sound like a person who typed it on their phone. One reaction to one detail they actually said.",
+    "British English. Spoken. Contractions are fine. One or two sentences when they only reacted or named a song. Up to three sentences when they asked how something works. Do not write a paragraph.",
+    "Do not summarise their post. Do not grade the song. Do not restate their story in different words. Do not open with Didn't know, Love this, So powerful, or That's the bit.",
+    "If they named a song and also told a story about a death or an accident, the comment is about the song title only. Do not mention the loss, the family, or a famous person they already named.",
+    "A question is only right when they left something open. Do not ask them to repeat a choice they already made.",
+    "Do not say: I won't, I will not, I'd be happy, certainly, delve, as an AI, easy to follow, for that slot, that's a lot for, playing it anyway, stayed with me.",
     "No links. No waitlist URL. No follower counts. No fees, city lists, checklists, back pay, placements, or programme dates that you were not given.",
     "If a fact is missing, say you do not have it, in one spoken sentence. Do not announce a rule.",
     "If they ask whether the reply is automated, say someone drafts this and Pat reads the words before it goes up.",
-    "A question is only right when they left something open. Do not ask them to repeat a choice they already made.",
-    "If the comment describes someone dying or a serious wish to die, return an empty string.",
+    "A song about a loss is not a crisis. Reply about the song. If they are in danger now, or they say they want to die, return an empty string.",
     "Output only the reply text. No label, no quotes, no explanation.",
   ].join(" ");
   const lines = [
-    `Account voice: a person on Threads for CITY JAM.`,
+    `How this account talks: ${accounts[fixture.accountId].speaksAs}`,
+    `What this reply is for: ${brief.goal}`,
     `Where it sits: ${place === "others" ? "a comment on someone else's post" : "a reply on CITY JAM's own post"}.`,
     `Their post: ${fixture.post}`,
     `Their comment: ${fixture.comment}`,
   ];
+  if (loss) {
+    lines.push(
+      "Use the song title they gave and say you will play it. Do not mention the death, the family, or anyone famous in the post.",
+    );
+  }
   if (training) {
     lines.push(`Sheet row: ${training.sheetId}. Category: ${training.sheetCategory}.`);
     lines.push(`What the reply must do: ${training.intent}`);
