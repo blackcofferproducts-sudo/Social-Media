@@ -62,12 +62,14 @@ function loadKey() {
 }
 
 async function main() {
-  const key = loadKey();
+  const input = JSON.parse(await readStdin()) as { system: string; user: string; cursorKey?: string };
+  const passed = input.cursorKey?.trim();
+  if (passed) process.env.CURSOR_API_KEY = passed;
+  const key = passed || loadKey();
   if (!key) {
     write({ ok: false, note: "CURSOR_API_KEY is not set." });
     return;
   }
-  const input = JSON.parse(await readStdin()) as { system: string; user: string };
   const cwd = path.join(os.tmpdir(), "cityjam-reply-scratch");
   fs.mkdirSync(cwd, { recursive: true });
   const store = new JsonlLocalAgentStore(path.join(os.tmpdir(), "cityjam-cursor-agents"));

@@ -65,6 +65,23 @@ function projectRoot() {
   return process.cwd();
 }
 
+function processEnviron() {
+  const env: NodeJS.ProcessEnv = { ...process.env };
+  try {
+    const raw = fs.readFileSync("/proc/self/environ");
+    for (const entry of raw.toString("utf8").split("\0")) {
+      if (!entry) continue;
+      const eq = entry.indexOf("=");
+      if (eq < 1) continue;
+      const name = entry.slice(0, eq);
+      if (!env[name]) env[name] = entry.slice(eq + 1);
+    }
+  } catch {
+    return env;
+  }
+  return env;
+}
+
 export function grokModelName() {
   return localEnv("GROK_MODEL") || GROK_MODEL;
 }
@@ -273,10 +290,14 @@ export async function askCursor(fixture: Fixture) {
 function runCursor(system: string, user: string, key: string) {
   const root = projectRoot();
   const script = path.join(root, "scripts", "cursor-reply.ts");
-  const env: NodeJS.ProcessEnv = { ...process.env, CITYJAM_ROOT: root };
-  if (key) env.CURSOR_API_KEY = key;
-  else delete env.CURSOR_API_KEY;
-  const child = spawn("npx", ["tsx", script], {
+  const env = processEnviron();
+  env.CITYJAM_ROOT = root;
+  const cursorKey = key || env.CURSOR_API_KEY?.trim() || readEnvFile("CURSOR_API_KEY");
+  if (cursorKey) env.CURSOR_API_KEY = cursorKey;
+  const tsxBin = path.join(root, "node_modules", "tsx", "dist", "cli.mjs");
+  const command = fs.existsSync(tsxBin) ? process.execPath : "npx";
+  const args = fs.existsSync(tsxBin) ? [tsxBin, script] : ["tsx", script];
+  const child = spawn(command, args, {
     cwd: root,
     env,
     stdio: ["pipe", "pipe", "pipe"],
@@ -291,14 +312,14 @@ function runCursor(system: string, user: string, key: string) {
   child.stderr.on("data", (chunk) => {
     stderr += chunk;
   });
-  child.stdin.end(JSON.stringify({ system, user }));
+  child.stdin.end(JSON.stringify({ system, user, cursorKey }));
   return new Promise<{ ok: boolean; text?: string; model?: string; note?: string }>((resolve) => {
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
     }, 120_000);
     child.on("close", (code, signal) => {
       clearTimeout(timer);
-      const hide = (text: string) => (key ? text.replaceAll(key, "[key]") : text).slice(0, 300);
+      const hide = (text: string) => (cursorKey ? text.replaceAll(cursorKey, "[key]") : text).slice(0, 300);
       let parsed: { ok?: boolean; text?: string; model?: string; note?: string } | null = null;
       try {
         parsed = JSON.parse(stdout.trim() || "{}");
