@@ -8,7 +8,9 @@ import { drafterReady } from "@/lib/grok";
 import { fixtures, placeOf } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
 import { rateImpact } from "@/lib/policy";
-import { gateFor, getDesk } from "@/lib/store";
+import { deskUsesScratchFile, gateFor, getDesk } from "@/lib/store";
+
+export const maxDuration = 60;
 
 export default async function QueuePage({
   searchParams,
@@ -39,6 +41,12 @@ export default async function QueuePage({
           writes the reply. The desk scores the likely impact. Testers score it, and Pat approves
           the exact text before anything is mock-published.
         </p>
+        {deskUsesScratchFile() ? (
+          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+            This host keeps scores and approvals in temporary storage. They last for this running
+            copy and clear when it goes idle.
+          </p>
+        ) : null}
       </div>
       <LiveReply connected={drafterReady()} />
       <div className="flex flex-wrap gap-2">

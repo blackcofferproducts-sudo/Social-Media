@@ -5,6 +5,8 @@ import { needsModelDraft, WRITING_NOTE } from "@/lib/draft-status";
 import { fixtureById } from "@/lib/fixtures";
 import { getDesk, markWriting, sentToday } from "@/lib/store";
 
+export const maxDuration = 60;
+
 export default async function CommentPage({
   params,
 }: {

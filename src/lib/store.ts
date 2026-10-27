@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { accounts, type AccountId } from "./accounts";
 import { fixtures, placeOf } from "./fixtures";
@@ -36,7 +37,31 @@ export type DeskState = {
   sends: SendRecord[];
 };
 
-const filePath = path.join(process.cwd(), "data", "desk-state.json");
+const bundledPath = path.join(process.cwd(), "data", "desk-state.json");
+const scratchPath = path.join(os.tmpdir(), "cityjam-desk-state.json");
+let activePath: string | null = null;
+
+function directoryIsWritable(dir: string) {
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    const probe = path.join(dir, ".desk-write-probe");
+    fs.writeFileSync(probe, "ok");
+    fs.unlinkSync(probe);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function deskFile() {
+  if (activePath) return activePath;
+  activePath = directoryIsWritable(path.dirname(bundledPath)) ? bundledPath : scratchPath;
+  return activePath;
+}
+
+export function deskUsesScratchFile() {
+  return deskFile() !== bundledPath;
+}
 
 function blankComment(draft: string): CommentRecord {
   return {
@@ -88,6 +113,7 @@ export function kolkataDay(date = new Date()) {
 
 export function getDesk(): DeskState {
   const base = seed();
+  const filePath = deskFile();
   if (!fs.existsSync(filePath)) return base;
   try {
     const saved = JSON.parse(fs.readFileSync(filePath, "utf8")) as DeskState;
@@ -110,6 +136,7 @@ export function getDesk(): DeskState {
 }
 
 function writeDesk(state: DeskState) {
+  const filePath = deskFile();
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const next = { ...state, version: STORE_VERSION, revision: state.revision + 1 };
   fs.writeFileSync(filePath, JSON.stringify(next, null, 2));

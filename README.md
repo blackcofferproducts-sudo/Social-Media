@@ -44,6 +44,19 @@ Scores and names are stored in `data/desk-state.json`. That file is local and is
 
 Threads replies are reviewed here. [Threadify](https://www.threadify.app/) can still schedule posts. The live Threads API is not called.
 
-## Deployment
+## Deploy on Vercel
 
-`npm run build` then `npm start` runs the desk on port 43123. The rehearsal state is a JSON file on disk. A serverless host will not keep those approvals. Connect a database before hosting it, and connect each platform with its own app authorisation rather than a password. No API credentials are required to run the local desk.
+This is a Next.js app. Publish it from Cursor, or import the repository in Vercel with the default Next.js settings. `npm run build` is the production build.
+
+After the project exists, add these environment variables for Production and Preview. Do not commit them.
+
+- `CURSOR_API_KEY` — the Cursor key from `.env.local`. Live replies stay on the sheet voice until this is set.
+- `XAI_API_KEY` — optional. When it is set, the desk calls Grok on xAI instead.
+- `GROK_MODEL` — optional. Defaults to `grok-4.7`.
+- `CURSOR_REPLY_MODEL` — optional override for the Cursor model id.
+
+A reply usually takes 15 to 40 seconds. The pages and the live-reply route allow 60 seconds. A plan that stops functions at 10 seconds will cut the reply off.
+
+Scores and approvals are written to `data/desk-state.json` when that folder can be written. On Vercel the app disk is read-only, so the desk uses a file in the function's temporary folder instead. That copy belongs to one running instance and disappears when the function goes idle. It is enough to rehearse the gate. A database is the next step if an approval has to survive a restart.
+
+`npm start` still runs the built desk locally on port 43123. No social API credentials are required. Connect each platform with its own app authorisation rather than a password.
