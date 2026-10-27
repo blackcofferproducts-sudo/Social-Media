@@ -10,12 +10,27 @@ import { commentBrief, describesALoss, hardFails } from "./policy";
 export const GROK_MODEL = "grok-4.7";
 const ENDPOINT = "https://api.x.ai/v1/chat/completions";
 
-function localEnv(name: string) {
-  const current = process.env[name]?.trim();
-  if (current) return current;
-  try {
-    const file = fs.readFileSync(path.join(process.cwd(), ".env.local"), "utf8");
-    for (const line of file.split("\n")) {
+function envFiles() {
+  const files = new Set<string>();
+  let dir = process.cwd();
+  for (let i = 0; i < 6; i += 1) {
+    files.add(path.join(dir, ".env.local"));
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return [...files];
+}
+
+function readEnvFile(name: string) {
+  for (const file of envFiles()) {
+    let text = "";
+    try {
+      text = fs.readFileSync(file, "utf8");
+    } catch {
+      continue;
+    }
+    for (const line of text.split("\n")) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("#")) continue;
       const eq = trimmed.indexOf("=");
@@ -25,10 +40,22 @@ function localEnv(name: string) {
       process.env[name] = value;
       return value;
     }
-  } catch {
-    return "";
   }
   return "";
+}
+
+function localEnv(name: string) {
+  const direct =
+    name === "CURSOR_API_KEY"
+      ? process.env.CURSOR_API_KEY
+      : name === "XAI_API_KEY"
+        ? process.env.XAI_API_KEY
+        : name === "GROK_MODEL"
+          ? process.env.GROK_MODEL
+          : process.env[name];
+  const current = direct?.trim();
+  if (current) return current;
+  return readEnvFile(name);
 }
 
 export function grokModelName() {
@@ -243,7 +270,7 @@ function runCursor(system: string, user: string, key: string) {
   const script = path.join(process.cwd(), "scripts/cursor-reply.ts");
   const child = spawn("npx", ["tsx", script], {
     cwd: process.cwd(),
-    env: process.env,
+    env: { ...process.env, CURSOR_API_KEY: key },
     stdio: ["pipe", "pipe", "pipe"],
   });
   let stdout = "";
@@ -287,6 +314,6 @@ export async function askDrafter(fixture: Fixture) {
   if (cursorReady()) return askCursor(fixture);
   return {
     ok: false as const,
-    note: "No model key is set. Add XAI_API_KEY for Grok 4.7. The sheet voice is standing in.",
+    note: "The reply was not written. Put CURSOR_API_KEY or XAI_API_KEY in .env.local and restart the desk.",
   };
 }
