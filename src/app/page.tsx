@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrivalDrafts } from "@/components/arrival-drafts";
+import { LiveReply } from "@/components/live-reply";
 import { Badge } from "@/components/ui/badge";
 import { accountIds, accounts } from "@/lib/accounts";
 import { modelPhase } from "@/lib/draft-status";
@@ -38,6 +39,7 @@ export default async function QueuePage({
           the exact text before anything is mock-published.
         </p>
       </div>
+      <LiveReply />
       <div className="flex flex-wrap gap-2">
         <Filter href="/" current={view === "others"} label="On other people's posts" />
         <Filter href="/?view=replies" current={view === "replies"} label="Replies on our Threads" />

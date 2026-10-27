@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { draftNext } from "@/lib/auto-draft";
 import { askDrafter } from "@/lib/grok";
+import { askLive, type LiveReplyResult } from "@/lib/live-reply";
 import { fixtureById } from "@/lib/fixtures";
 import type { TesterScore } from "@/lib/policy";
 import {
@@ -37,6 +38,14 @@ function scoreFrom(formData: FormData): TesterScore {
 export async function saveNamesAction(formData: FormData) {
   saveTesterNames(String(formData.get("testerA") ?? ""), String(formData.get("testerB") ?? ""));
   refresh();
+}
+
+export async function liveReplyAction(_prev: LiveReplyResult, formData: FormData): Promise<LiveReplyResult> {
+  return askLive(
+    String(formData.get("post") ?? ""),
+    String(formData.get("comment") ?? ""),
+    String(formData.get("place") ?? ""),
+  );
 }
 
 export async function draftNextAction(focusId?: string, scope?: "others" | "replies") {
