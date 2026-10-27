@@ -240,8 +240,8 @@ export function commentBrief(input: {
   const joining = asksToJoin(input.text) && place === "own" && isCityJam(input.accountId);
   const loss = describesALoss(input.text);
   const communication = isPat(input.accountId)
-    ? "Pat, talking as himself. One reaction, not a paragraph. No slogan."
-    : "A person replying. React to one thing they said. Don't summarise the post, and don't grade it.";
+    ? "Pat, talking as himself. A few warm sentences, specific to what they said. No slogan."
+    : "A person replying. Stay with what they said, and give it four or five sentences. Don't summarise the whole post, and don't grade it.";
   const goal = isPat(input.accountId)
     ? "A conversation about his work, agents, and Innovation Philosophie. Not a CITY JAM sign-up."
     : loss && place === "others"

@@ -13,6 +13,7 @@ describe("grok", () => {
   it("asks for a human reply to this comment, with no link", () => {
     const prompt = grokPrompt(join);
     assert.match(prompt.system, /person who typed it/);
+    assert.match(prompt.system, /four or five sentences/);
     assert.match(prompt.system, /No links/);
     assert.match(prompt.user, /how do i actually join/i);
     assert.match(prompt.user, /no links/i);

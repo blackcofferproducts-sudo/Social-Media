@@ -110,15 +110,15 @@ export function grokPrompt(fixture: Fixture, speaker = "Grok 4.7") {
   const brief = commentBrief({ accountId: fixture.accountId, text: fixture.comment, place });
   const loss = describesALoss(fixture.comment) && place === "others";
   const system = [
-    `You are ${speaker} writing one short public comment.`,
-    "Sound like a person who typed it on their phone. One reaction to one detail they actually said.",
-    "British English. Spoken. Contractions are fine. One or two sentences when they only reacted or named a song. Up to three sentences when they asked how something works. Do not write a paragraph.",
-    "Do not summarise their post. Do not grade the song. Do not restate their story in different words. Do not open with Didn't know, Love this, So powerful, or That's the bit.",
+    `You are ${speaker} writing a public comment with some room in it.`,
+    "Sound like a person who typed it on their phone and had a bit to say. Stay with one detail they actually said, and let the feeling of it show.",
+    "British English. Spoken. Contractions are fine. Write four or five sentences, about 70 to 110 words. A short paragraph is what we want. Do not stop after one line, and do not turn it into an essay or a list.",
+    "Say what that detail makes you picture, want to play, or answer. Be warm and specific. Do not summarise their whole post. Do not grade the song. Do not restate their story in different words. Do not open with Didn't know, Love this, So powerful, or That's the bit.",
     "If they named a song and also told a story about a death or an accident, the comment is about the song title only. Do not mention the loss, the family, or a famous person they already named.",
     "A question is only right when they left something open. Do not ask them to repeat a choice they already made.",
     "Do not say: I won't, I will not, I'd be happy, certainly, delve, as an AI, easy to follow, for that slot, that's a lot for, playing it anyway, stayed with me.",
     "No links. No waitlist URL. No follower counts. No fees, city lists, checklists, back pay, placements, or programme dates that you were not given.",
-    "If a fact is missing, say you do not have it, in one spoken sentence. Do not announce a rule.",
+    "If a fact is missing, say you do not have it, in plain speech, and keep going with what you do know. Do not announce a rule.",
     "If they ask whether the reply is automated, say someone drafts this and Pat reads the words before it goes up.",
     "A song about a loss is not a crisis. Reply about the song. If they are in danger now, or they say they want to die, return an empty string.",
     "Output only the reply text. No label, no quotes, no explanation.",
@@ -144,7 +144,7 @@ export function grokPrompt(fixture: Fixture, speaker = "Grok 4.7") {
       "Known: there is an app, and they join in the app. This page is the post, not the sign-up. You have no link to give.",
     );
   }
-  lines.push("Write the reply.");
+  lines.push("Write four or five sentences. Be specific and a bit warm. Do not stop after one line.");
   return { system, user: lines.join("\n") };
 }
 
@@ -229,7 +229,7 @@ export async function askGrok(fixture: Fixture, fetchImpl: FetchLike = fetch) {
       body: JSON.stringify({
         model,
         reasoning_effort: "low",
-        max_completion_tokens: 220,
+        max_completion_tokens: 500,
         messages: [
           { role: "system", content: prompt.system },
           { role: "user", content: user },
@@ -271,7 +271,7 @@ export async function askCursor(fixture: Fixture) {
     const user =
       attempt === 0
         ? prompt.user
-        : `${prompt.user}\n\nYour last reply was rejected: ${rejection}\nWrite the reply as one or two spoken sentences.`;
+        : `${prompt.user}\n\nYour last reply was rejected: ${rejection}\nWrite four or five spoken sentences. Be specific and a bit warm.`;
     const parsed = await runCursor(prompt.system, user, key);
     if (!parsed.ok || !parsed.text) {
       return { ok: false as const, note: `Cursor could not write the reply. ${parsed.note}` };
