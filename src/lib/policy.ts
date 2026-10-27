@@ -58,6 +58,9 @@ const AI_PHRASES = [
   "for that slot",
   "clear offer",
   "heavy song for",
+  "that's a lot for",
+  "that’s a lot for",
+  "playing it anyway",
 ];
 
 const AMERICAN: Array<[RegExp, string]> = [

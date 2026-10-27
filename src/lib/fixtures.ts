@@ -387,7 +387,7 @@ export const fixtures: Fixture[] = [
     category: "music",
     signal: "ordinary",
     expected: "reply",
-    suggestedDraft: "Branding Iron. That's a lot for a Friday, I'm playing it anyway.",
+    suggestedDraft: "Branding Iron. I'll put that on.",
   },
   {
     id: "out-threads-kitchen",

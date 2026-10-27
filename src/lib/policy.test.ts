@@ -137,7 +137,11 @@ describe("pass mark", () => {
     const folk = fixtures.find((item) => item.id === "out-threads-folk-friday");
     assert.ok(folk);
     assert.deepEqual(hardFails(folk.suggestedDraft, folk.accountId, "others", folk.comment), []);
-    assert.doesNotMatch(folk.suggestedDraft, /daughter|accident|springsteen|\?|easy to follow|for that slot/i);
+    assert.equal(folk.suggestedDraft, "Branding Iron. I'll put that on.");
+    assert.doesNotMatch(
+      folk.suggestedDraft,
+      /daughter|accident|springsteen|\?|easy to follow|for that slot|that's a lot|playing it anyway/i,
+    );
     const graded = hardFails(
       "One tune each Friday is easy to follow. Branding Iron is a heavy song for that slot.",
       folk.accountId,
@@ -145,6 +149,13 @@ describe("pass mark", () => {
       folk.comment,
     );
     assert.ok(graded.some((fail) => fail.includes("easy to follow")));
+    const judged = hardFails(
+      "Branding Iron. That's a lot for a Friday, I'm playing it anyway.",
+      folk.accountId,
+      "others",
+      folk.comment,
+    );
+    assert.ok(judged.some((fail) => fail.includes("that's a lot for")));
     const brief = commentBrief({
       accountId: folk.accountId,
       text: folk.comment,
