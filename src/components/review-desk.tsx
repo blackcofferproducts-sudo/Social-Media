@@ -228,8 +228,11 @@ export function ReviewDesk({
             <form action={draftWithGrokAction} className="flex flex-col gap-2">
               <input type="hidden" name="commentId" value={fixture.id} />
               <p className="text-sm leading-6 text-muted-foreground">
-                {grokModel} writes the reply. The desk scores it out of 10, the testers score it, and
-                Pat approves the exact text.
+                {grokModel} writes the reply.
+                {grokModel === "Cursor"
+                  ? " That call uses Grok 4.7 on this Cursor account, because no xAI key is set."
+                  : ""}
+                The desk scores it out of 10, the testers score it, and Pat approves the exact text.
                 {record.source === "grok" && record.model ? ` This text is from ${record.model}.` : ""}
               </p>
               {record.grokNote ? <p className="text-sm leading-6">{record.grokNote}</p> : null}
@@ -239,7 +242,7 @@ export function ReviewDesk({
               />
               {!grokReady ? (
                 <p className="text-sm leading-6 text-muted-foreground">
-                  Add XAI_API_KEY to connect {grokModel}. Until then the sheet voice stands in.
+                  Add XAI_API_KEY for Grok 4.7. Until a model key is set, the sheet voice stands in.
                 </p>
               ) : null}
               {gate.decision.action === "handoff" ? (

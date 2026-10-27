@@ -20,7 +20,13 @@ Grok 4.7 writes the reply when you ask it on a comment. Put your xAI key in `.en
 XAI_API_KEY=your-key-from-console.x.ai
 ```
 
-The model name is `grok-4.7`. You can override it with `GROK_MODEL`. Without the key, the sheet voice stands in and the score and Pat's approval still work. The key stays on the server. It is not written into a reply.
+The model name is `grok-4.7`. You can override it with `GROK_MODEL`. Until an xAI key is set, a Cursor key in the same file stands in:
+
+```bash
+CURSOR_API_KEY=your-cursor-api-key
+```
+
+That call uses a Cursor model (Grok if the account lists one, otherwise Composer), from an empty folder, with no tools, so it cannot edit this project. Override the model id with `CURSOR_REPLY_MODEL`. With neither key, the sheet voice stands in and the score and Pat's approval still work. Keys stay on the server. They are not written into a reply.
 
 `npm test` checks the handoff rules, the gold replies, the 5-out-of-6 pass mark, Pat's approval of the exact text, and the daily caps.
 

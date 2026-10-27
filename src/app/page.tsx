@@ -32,10 +32,10 @@ export default async function QueuePage({
           them, and use the waitlist link only if they asked how to join. Engagement: respond to
           something they said. Ask a question only when the post left it open. Rationality: say only what their post
           supports. No follower numbers, and no promised result. Replies on our Threads include
-          56 comments from the engagement sheet. Ask Grok 4.7 on the comment, and it writes a
-          human reply from that row&apos;s intent. The desk then scores the likely impact. Testers
-          score it, and Pat approves the exact text before anything is mock-published. Without an
-          xAI key, the sheet voice stands in.
+          56 comments from the engagement sheet. Ask Cursor on the comment while no xAI key is
+          set, or Grok 4.7 when one is. The model writes a human reply from that row&apos;s intent.
+          The desk then scores the likely impact. Testers score it, and Pat approves the exact text
+          before anything is mock-published.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">

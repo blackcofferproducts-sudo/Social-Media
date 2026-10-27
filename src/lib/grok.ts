@@ -1,3 +1,5 @@
+import { spawn } from "node:child_process";
+import path from "node:path";
 import { roboticPhrase } from "./comment-model";
 import type { Fixture } from "./fixture";
 import { placeOf } from "./fixture";
@@ -14,11 +16,25 @@ export function grokReady() {
   return Boolean(process.env.XAI_API_KEY?.trim());
 }
 
-export function grokPrompt(fixture: Fixture) {
+export function cursorReady() {
+  return Boolean(process.env.CURSOR_API_KEY?.trim());
+}
+
+export function drafterReady() {
+  return grokReady() || cursorReady();
+}
+
+export function drafterName() {
+  if (grokReady()) return grokModelName();
+  if (cursorReady()) return "Cursor";
+  return grokModelName();
+}
+
+export function grokPrompt(fixture: Fixture, speaker = "Grok 4.7") {
   const place = placeOf(fixture);
   const training = fixture.training;
   const system = [
-    "You are Grok 4.7 writing one short public reply for CITY JAM on Threads.",
+    `You are ${speaker} writing one short public reply for CITY JAM on Threads.`,
     "Sound like a person who typed it. One reaction to something they actually said.",
     "British English. Spoken. One or two sentences when they only reacted. Up to three sentences when they asked how something works. Do not write a paragraph. No slogan, no summary of their post, and no grade of the song or the post.",
     "Do not say: I won't, I will not, I'd be happy, certainly, delve, as an AI, easy to follow, for that slot, that's a lot for, playing it anyway.",
@@ -38,6 +54,11 @@ export function grokPrompt(fixture: Fixture) {
   if (training) {
     lines.push(`Sheet row: ${training.sheetId}. Category: ${training.sheetCategory}.`);
     lines.push(`What the reply must do: ${training.intent}`);
+  }
+  if (training && /join|waitlist|\bapp\b/i.test(`${training.intent} ${fixture.comment}`)) {
+    lines.push(
+      "Known: there is an app, and they join in the app. This page is the post, not the sign-up. You have no link to give.",
+    );
   }
   lines.push("Write the reply.");
   return { system, user: lines.join("\n") };
@@ -150,5 +171,71 @@ export async function askGrok(fixture: Fixture, fetchImpl: FetchLike = fetch) {
   return {
     ok: false as const,
     note: `Grok ${model} replied, and the desk kept the previous text. ${rejection} Last try: ${last.slice(0, 180)}`,
+  };
+}
+
+export async function askCursor(fixture: Fixture) {
+  const key = process.env.CURSOR_API_KEY?.trim();
+  if (!key) {
+    return { ok: false as const, note: "CURSOR_API_KEY is not set." };
+  }
+  if (fixture.expected === "handoff") {
+    return { ok: false as const, note: "This comment is a handoff. Cursor does not write a public reply." };
+  }
+  const prompt = grokPrompt(fixture, "Cursor");
+  const script = path.join(process.cwd(), "scripts/cursor-reply.ts");
+  const child = spawn("npx", ["tsx", script], {
+    cwd: process.cwd(),
+    env: process.env,
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+  let stdout = "";
+  let stderr = "";
+  child.stdout.setEncoding("utf8");
+  child.stderr.setEncoding("utf8");
+  child.stdout.on("data", (chunk) => {
+    stdout += chunk;
+  });
+  child.stderr.on("data", (chunk) => {
+    stderr += chunk;
+  });
+  child.stdin.end(JSON.stringify({ system: prompt.system, user: prompt.user }));
+  const finished = await new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve) => {
+    const timer = setTimeout(() => {
+      child.kill("SIGTERM");
+    }, 120_000);
+    child.on("close", (code, signal) => {
+      clearTimeout(timer);
+      resolve({ code, signal });
+    });
+  });
+  const hide = (text: string) => text.replaceAll(key, "[key]").slice(0, 300);
+  let parsed: { ok?: boolean; text?: string; model?: string; note?: string } | null = null;
+  try {
+    parsed = JSON.parse(stdout.trim() || "{}");
+  } catch {
+    parsed = null;
+  }
+  if (!parsed?.ok || !parsed.text) {
+    const detail = hide(parsed?.note || stderr || stdout || `Cursor exited ${finished.code ?? finished.signal}.`);
+    return { ok: false as const, note: `Cursor could not write the reply. ${detail}` };
+  }
+  const text = cleanReply(parsed.text);
+  const problem = rejectReply(text, fixture);
+  if (problem) {
+    return {
+      ok: false as const,
+      note: `Cursor replied, and the desk kept the previous text. ${problem} Last try: ${text.slice(0, 180)}`,
+    };
+  }
+  return { ok: true as const, text, model: parsed.model?.trim() || "Cursor" };
+}
+
+export async function askDrafter(fixture: Fixture) {
+  if (grokReady()) return askGrok(fixture);
+  if (cursorReady()) return askCursor(fixture);
+  return {
+    ok: false as const,
+    note: "No model key is set. Add XAI_API_KEY for Grok 4.7. The sheet voice is standing in.",
   };
 }

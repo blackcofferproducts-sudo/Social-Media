@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { askGrok } from "@/lib/grok";
+import { askDrafter } from "@/lib/grok";
 import { fixtureById } from "@/lib/fixtures";
 import type { TesterScore } from "@/lib/policy";
 import {
@@ -43,7 +43,7 @@ export async function draftWithGrokAction(formData: FormData) {
   const fixture = fixtureById(commentId);
   if (!fixture) return;
   try {
-    const result = await askGrok(fixture);
+    const result = await askDrafter(fixture);
     if (result.ok) saveGrokDraft(commentId, result.text, result.model);
     else saveGrokNote(commentId, result.note);
   } catch (error) {
