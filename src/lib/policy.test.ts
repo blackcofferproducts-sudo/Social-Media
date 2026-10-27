@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { accounts } from "./accounts";
 import { fixtures, placeOf } from "./fixtures";
+import { roboticPhrase } from "./comment-model";
 import { draftReply, loadSheet, nearestIds } from "./train";
 import {
   analyse,
@@ -31,6 +32,7 @@ describe("training sheet", () => {
     assert.equal(trained.length, 56);
     for (const fixture of trained) {
       assert.ok(fixture.suggestedDraft.length > 20, fixture.id);
+      assert.equal(roboticPhrase(fixture.suggestedDraft), null, fixture.suggestedDraft);
       assert.equal(/https?:\/\/|easy to follow|for that slot|clear offer/i.test(fixture.suggestedDraft), false);
       assert.deepEqual(
         hardFails(fixture.suggestedDraft, fixture.accountId, "own", fixture.comment),
@@ -42,12 +44,12 @@ describe("training sheet", () => {
   it("answers the join question without a link and tells the truth about a draft", () => {
     const join = draftReply("how do i actually join?? is there an app or is it just this page", "Answer the question plainly: how to join and where the App fits, no links", "Joining or programme fit");
     assert.match(join, /app/i);
-    assert.doesNotMatch(join, /https?:/);
+    assert.doesNotMatch(join, /https?:|i won't/i);
     const bot = draftReply("is this another AI thing", "Calm and honest; if asked whether replies are automated, answer truthfully or escalate to Pat", "Mild sceptic");
-    assert.match(bot, /Pat approves/);
+    assert.match(bot, /Pat reads/);
     const leeds = draftReply("are Certified Studios only in big cities? im in Leeds", "Answer honestly about coverage without inventing locations or numbers", "Studio or recording");
-    assert.match(leeds, /won't say yes or no for Leeds/);
-    assert.doesNotMatch(leeds, /Leeds is covered|Leeds is not/);
+    assert.match(leeds, /can't tell you about Leeds/);
+    assert.doesNotMatch(leeds, /Leeds is covered|Leeds is not|won't say yes or no/);
   });
 
   it("finds a neighbour in the same kind of comment", () => {

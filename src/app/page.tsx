@@ -32,8 +32,9 @@ export default async function QueuePage({
           them, and use the waitlist link only if they asked how to join. Engagement: respond to
           something they said. Ask a question only when the post left it open. Rationality: say only what their post
           supports. No follower numbers, and no promised result. Replies on our Threads include
-          56 comments from the engagement sheet. The draft follows that row&apos;s intent and the
-          words they used. It is not a stored sentence, and it is not a fine-tuned neural net.
+          56 comments from the engagement sheet. The voice was trained on that sheet so a reply
+          sounds like a person: it follows the row&apos;s intent and the words they used, and it says
+          when a fact is missing. Pat still approves the exact text.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">

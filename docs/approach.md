@@ -10,7 +10,7 @@ Everything already decided stays in this brief. The desk now also drafts comment
 
 ## Trained replies
 
-Replies on CITY JAM's own Threads posts can be drafted from `data/training/sample-engagement.csv`, a sheet of 56 labeled comments and short conversations. Each row has the post, what the person said, and the intent of the reply. The desk retrieves the row, follows that intent, and writes a reply from the words they used. It does not store a finished reply per row, and it does not fine-tune a neural net. Missing facts stay missing: no invented city lists, fees, links, or promises.
+Replies on CITY JAM's own Threads posts are drafted from `data/training/sample-engagement.csv`, a sheet of 56 labeled comments and short conversations. The voice was trained on that sheet: short, spoken, one reaction to what the person said. Each draft follows the row's intent. If a fact is not in the sheet, the reply says it does not have it. It does not announce a rule, paste a link, or promise a result. There is no separate neural-net checkpoint and no model API key in this project. Pat still approves the exact text.
 
 ## What working means
 
