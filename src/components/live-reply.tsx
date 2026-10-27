@@ -19,6 +19,7 @@ export function LiveReply() {
     try {
       const response = await fetch("/api/live-reply", {
         method: "POST",
+        cache: "no-store",
         body: new FormData(event.currentTarget),
       });
       const result = (await response.json()) as typeof initial;

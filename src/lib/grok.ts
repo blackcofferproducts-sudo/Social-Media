@@ -1,5 +1,5 @@
-import { spawn } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { roboticPhrase } from "./comment-model";
 import type { Fixture } from "./fixture";
@@ -287,55 +287,48 @@ export async function askCursor(fixture: Fixture) {
   };
 }
 
-function runCursor(system: string, user: string, key: string) {
-  const root = projectRoot();
-  const script = path.join(root, "scripts", "cursor-reply.ts");
+async function runCursor(system: string, user: string, key: string) {
   const env = processEnviron();
-  env.CITYJAM_ROOT = root;
   const cursorKey = key || env.CURSOR_API_KEY?.trim() || readEnvFile("CURSOR_API_KEY");
-  if (cursorKey) env.CURSOR_API_KEY = cursorKey;
-  const tsxBin = path.join(root, "node_modules", "tsx", "dist", "cli.mjs");
-  const command = fs.existsSync(tsxBin) ? process.execPath : "npx";
-  const args = fs.existsSync(tsxBin) ? [tsxBin, script] : ["tsx", script];
-  const child = spawn(command, args, {
-    cwd: root,
-    env,
-    stdio: ["pipe", "pipe", "pipe"],
-  });
-  let stdout = "";
-  let stderr = "";
-  child.stdout.setEncoding("utf8");
-  child.stderr.setEncoding("utf8");
-  child.stdout.on("data", (chunk) => {
-    stdout += chunk;
-  });
-  child.stderr.on("data", (chunk) => {
-    stderr += chunk;
-  });
-  child.stdin.end(JSON.stringify({ system, user, cursorKey }));
-  return new Promise<{ ok: boolean; text?: string; model?: string; note?: string }>((resolve) => {
-    const timer = setTimeout(() => {
-      child.kill("SIGTERM");
-    }, 120_000);
-    child.on("close", (code, signal) => {
-      clearTimeout(timer);
-      const hide = (text: string) => (cursorKey ? text.replaceAll(cursorKey, "[key]") : text).slice(0, 300);
-      let parsed: { ok?: boolean; text?: string; model?: string; note?: string } | null = null;
-      try {
-        parsed = JSON.parse(stdout.trim() || "{}");
-      } catch {
-        parsed = null;
-      }
-      if (!parsed?.ok || !parsed.text) {
-        resolve({
-          ok: false,
-          note: hide(parsed?.note || stderr || stdout || `Cursor exited ${code ?? signal}.`),
-        });
-        return;
-      }
-      resolve({ ok: true, text: parsed.text, model: parsed.model });
+  const hide = (text: string) => (cursorKey ? text.replaceAll(cursorKey, "[key]") : text).slice(0, 300);
+  if (!cursorKey) {
+    return { ok: false as const, note: "CURSOR_API_KEY is not set." };
+  }
+  process.env.CURSOR_API_KEY = cursorKey;
+  try {
+    const { Agent, Cursor, JsonlLocalAgentStore } = await import("@cursor/sdk");
+    const models = await Cursor.models.list({ apiKey: cursorKey });
+    const grok =
+      models.find((item) => item.id === "grok-4.7") ?? models.find((item) => /grok/i.test(item.id));
+    const composer = models.find((item) => /composer/i.test(item.id));
+    const chosen = grok ?? composer ?? models[0];
+    if (!chosen) return { ok: false as const, note: "This Cursor key has no models available." };
+    const variant = chosen.variants?.find((item) => item.isDefault) ?? chosen.variants?.[0];
+    const scratch = path.join(os.tmpdir(), "cityjam-reply-scratch");
+    fs.mkdirSync(scratch, { recursive: true });
+    const result = await Agent.prompt(`${system}\n\nDo not use tools. Do not read or edit any file. Output only the reply text.\n\n${user}`, {
+      apiKey: cursorKey,
+      model: { id: chosen.id, params: variant?.params },
+      tools: [],
+      mode: "agent",
+      local: {
+        cwd: scratch,
+        store: new JsonlLocalAgentStore(path.join(os.tmpdir(), "cityjam-cursor-agents")),
+        settingSources: [],
+      },
     });
-  });
+    const text = (result.result ?? "").trim();
+    if (result.status !== "finished" || !text) {
+      const message = result.error?.message ?? `Cursor run ${result.status}.`;
+      return { ok: false as const, note: hide(message) };
+    }
+    const modelId =
+      result.model && typeof result.model === "object" && "id" in result.model ? String(result.model.id) : chosen.id;
+    return { ok: true as const, text, model: modelId };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Cursor could not be reached.";
+    return { ok: false as const, note: hide(message) };
+  }
 }
 
 export async function askDrafter(fixture: Fixture) {
