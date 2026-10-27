@@ -8,6 +8,10 @@ The desk reviews replies for Pat Villaceran and for CITY JAM. It runs on mock co
 
 Everything already decided stays in this brief. The desk now also drafts comments on other people's posts, on Threads, Instagram, X, and LinkedIn. A comment on someone else's post carries no link. Replies on CITY JAM's own Threads posts remain. The live slice for those replies is Threads only. CITY JAM speaks there: independent music and the app's consumer features. A reply is mock-published only after both testers pass it and Pat approves that exact text. The cap is 40 replies a day, under the Threads ceiling of 1,000. X, Instagram, and LinkedIn are in the queue when the task is a comment on someone else's post. Their own-post replies stay written below for a later slice. Threadify can still schedule Threads posts. This desk reviews and mock-publishes the replies. Follower totals are still read on the profile and in Threadify. Waitlist links from this desk use `utm_source=threads`.
 
+## Trained replies
+
+Replies on CITY JAM's own Threads posts can be drafted from `data/training/sample-engagement.csv`, a sheet of 56 labeled comments and short conversations. Each row has the post, what the person said, and the intent of the reply. The desk retrieves the row, follows that intent, and writes a reply from the words they used. It does not store a finished reply per row, and it does not fine-tune a neural net. Missing facts stay missing: no invented city lists, fees, links, or promises.
+
 ## What working means
 
 A reply is working when both named testers pass it and Pat Villaceran approves that exact text. A metric is working when it moves in the source named below. The 50,000 waitlist places and the 10,000 Threads followers are company targets. This desk is accountable for the replies Pat approved, and for the links those replies carried.

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { accounts } from "./accounts";
 import { fixtures, placeOf } from "./fixtures";
+import { draftReply, loadSheet, nearestIds } from "./train";
 import {
   analyse,
   commentBrief,
@@ -16,6 +17,45 @@ import {
 
 const names = { a: "Amina Shah", b: "Leo Park" };
 const passing = { hardFail: false, communication: 2, engagement: 2, rationality: 2 };
+
+describe("training sheet", () => {
+  const sheet = loadSheet();
+
+  it("reads 56 labeled rows", () => {
+    assert.equal(sheet.length, 56);
+    assert.equal(sheet.filter((row) => row.type === "convo").length, 20);
+  });
+
+  it("drafts every row from the intent, with no link and no review voice", () => {
+    const trained = fixtures.filter((fixture) => fixture.training);
+    assert.equal(trained.length, 56);
+    for (const fixture of trained) {
+      assert.ok(fixture.suggestedDraft.length > 20, fixture.id);
+      assert.equal(/https?:\/\/|easy to follow|for that slot|clear offer/i.test(fixture.suggestedDraft), false);
+      assert.deepEqual(
+        hardFails(fixture.suggestedDraft, fixture.accountId, "own", fixture.comment),
+        [],
+      );
+    }
+  });
+
+  it("answers the join question without a link and tells the truth about a draft", () => {
+    const join = draftReply("how do i actually join?? is there an app or is it just this page", "Answer the question plainly: how to join and where the App fits, no links", "Joining or programme fit");
+    assert.match(join, /app/i);
+    assert.doesNotMatch(join, /https?:/);
+    const bot = draftReply("is this another AI thing", "Calm and honest; if asked whether replies are automated, answer truthfully or escalate to Pat", "Mild sceptic");
+    assert.match(bot, /Pat approves/);
+    const leeds = draftReply("are Certified Studios only in big cities? im in Leeds", "Answer honestly about coverage without inventing locations or numbers", "Studio or recording");
+    assert.match(leeds, /won't say yes or no for Leeds/);
+    assert.doesNotMatch(leeds, /Leeds is covered|Leeds is not/);
+  });
+
+  it("finds a neighbour in the same kind of comment", () => {
+    const near = nearestIds(sheet, "C04");
+    assert.ok(near.length === 2);
+    assert.ok(near.every((id) => id !== "C04"));
+  });
+});
 
 describe("disposition", () => {
   for (const fixture of fixtures) {

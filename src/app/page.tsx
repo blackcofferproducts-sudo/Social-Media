@@ -31,7 +31,9 @@ export default async function QueuePage({
           one point, no slogan. Goal: on someone else&apos;s post, earn a reply; on our post, answer
           them, and use the waitlist link only if they asked how to join. Engagement: respond to
           something they said. Ask a question only when the post left it open. Rationality: say only what their post
-          supports. No follower numbers, and no promised result.
+          supports. No follower numbers, and no promised result. Replies on our Threads include
+          56 comments from the engagement sheet. The draft follows that row&apos;s intent and the
+          words they used. It is not a stored sentence, and it is not a fine-tuned neural net.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -72,6 +74,11 @@ export default async function QueuePage({
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">{accounts[fixture.accountId].short}</Badge>
                     <Badge variant="outline">{signalLabel[fixture.signal]}</Badge>
+                    {fixture.training ? (
+                      <Badge variant="outline">
+                        {fixture.training.sheetId} · {fixture.training.sheetCategory}
+                      </Badge>
+                    ) : null}
                   </div>
                   <p className="text-sm leading-6">{fixture.comment}</p>
                   <p className="text-xs text-muted-foreground">{categoryLabel[fixture.category]}</p>

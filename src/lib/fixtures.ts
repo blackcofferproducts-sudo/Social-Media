@@ -1,22 +1,8 @@
-import type { AccountId } from "./accounts";
-import type { Category, Place, Signal } from "./policy";
+import { trainedFixtures } from "./train";
 
-export type Fixture = {
-  id: string;
-  accountId: AccountId;
-  author: string;
-  post: string;
-  comment: string;
-  category: Category;
-  signal: Signal;
-  expected: "reply" | "handoff";
-  suggestedDraft: string;
-  place?: Place;
-};
-
-export function placeOf(fixture: Fixture): Place {
-  return fixture.place ?? "own";
-}
+export type { Fixture, TrainingNote } from "./fixture";
+export { placeOf } from "./fixture";
+import type { Fixture } from "./fixture";
 
 const waitlist = (source: string) =>
   `https://waitlist.cityjam.example/?utm_source=${source}`;
@@ -527,6 +513,7 @@ export const fixtures: Fixture[] = [
     expected: "handoff",
     suggestedDraft: "",
   },
+  ...trainedFixtures,
 ];
 
 export function fixtureById(id: string) {

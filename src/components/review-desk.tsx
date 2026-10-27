@@ -15,7 +15,7 @@ import {
   saveScoreAction,
 } from "@/app/actions";
 import { accounts } from "@/lib/accounts";
-import { placeOf, type Fixture } from "@/lib/fixtures";
+import { placeOf, type Fixture } from "@/lib/fixture";
 import { categoryLabel, signalLabel } from "@/lib/labels";
 import {
   analyse,
@@ -97,6 +97,20 @@ export function ReviewDesk({
           <Badge variant="outline">{onOthers ? "On their post" : "On our post"}</Badge>
           <Badge variant="outline">{signalLabel[fixture.signal]}</Badge>
         </div>
+        {fixture.training ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>From the sheet · {fixture.training.sheetId}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2 text-sm leading-6">
+              <p>{fixture.training.sheetCategory}</p>
+              <p>{fixture.training.intent}</p>
+              <p className="text-muted-foreground">
+                Nearest other rows: {fixture.training.nearest.join(", ") || "none"}.
+              </p>
+            </CardContent>
+          </Card>
+        ) : null}
         <Card>
           <CardHeader>
             <CardTitle>Reading</CardTitle>
