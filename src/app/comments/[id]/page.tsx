@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ReviewDesk } from "@/components/review-desk";
 import { fixtureById } from "@/lib/fixtures";
+import { grokModelName, grokReady } from "@/lib/grok";
 import { getDesk, sentToday } from "@/lib/store";
 
 export default async function CommentPage({
@@ -21,6 +22,8 @@ export default async function CommentPage({
       record={record}
       testerNames={desk.testerNames}
       sentToday={sentToday(desk, fixture.accountId)}
+      grokReady={grokReady()}
+      grokModel={grokModelName()}
     />
   );
 }

@@ -1,16 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { askGrok } from "@/lib/grok";
+import { fixtureById } from "@/lib/fixtures";
+import type { TesterScore } from "@/lib/policy";
 import {
   approveComment,
   handoffComment,
   publishMock,
   recordManualPost,
   saveDraft,
+  saveGrokDraft,
+  saveGrokNote,
   saveScore,
   saveTesterNames,
 } from "@/lib/store";
-import type { TesterScore } from "@/lib/policy";
 
 function refresh(commentId?: string) {
   revalidatePath("/");
@@ -32,6 +36,21 @@ function scoreFrom(formData: FormData): TesterScore {
 export async function saveNamesAction(formData: FormData) {
   saveTesterNames(String(formData.get("testerA") ?? ""), String(formData.get("testerB") ?? ""));
   refresh();
+}
+
+export async function draftWithGrokAction(formData: FormData) {
+  const commentId = String(formData.get("commentId") ?? "");
+  const fixture = fixtureById(commentId);
+  if (!fixture) return;
+  try {
+    const result = await askGrok(fixture);
+    if (result.ok) saveGrokDraft(commentId, result.text, result.model);
+    else saveGrokNote(commentId, result.note);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Grok could not be reached.";
+    saveGrokNote(commentId, message.slice(0, 300));
+  }
+  refresh(commentId);
 }
 
 export async function saveDraftAction(formData: FormData) {

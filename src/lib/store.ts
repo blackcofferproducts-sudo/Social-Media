@@ -6,8 +6,13 @@ import { evaluateGate, type TesterScore } from "./policy";
 
 export type Outcome = "open" | "handed-off" | "mock-published" | "posted-by-pat";
 
+export type DraftSource = "sheet" | "grok" | "edited";
+
 export type CommentRecord = {
   draft: string;
+  source: DraftSource;
+  model: string | null;
+  grokNote: string | null;
   testerA: TesterScore | null;
   testerB: TesterScore | null;
   approvedText: string | null;
@@ -36,10 +41,27 @@ const filePath = path.join(process.cwd(), "data", "desk-state.json");
 function blankComment(draft: string): CommentRecord {
   return {
     draft,
+    source: "sheet",
+    model: null,
+    grokNote: null,
     testerA: null,
     testerB: null,
     approvedText: null,
     outcome: "open",
+  };
+}
+
+function normaliseRecord(record: Partial<CommentRecord> & { draft?: string }): CommentRecord {
+  const source = record.source === "grok" || record.source === "edited" ? record.source : "sheet";
+  return {
+    draft: record.draft ?? "",
+    source,
+    model: record.model ?? null,
+    grokNote: record.grokNote ?? null,
+    testerA: record.testerA ?? null,
+    testerB: record.testerB ?? null,
+    approvedText: record.approvedText ?? null,
+    outcome: record.outcome ?? "open",
   };
 }
 
@@ -75,10 +97,12 @@ export function getDesk(): DeskState {
       revision: saved.revision ?? 0,
       testerNames: saved.testerNames ?? { a: "", b: "" },
       sends: Array.isArray(saved.sends) ? saved.sends : [],
-      comments: {
-        ...base.comments,
-        ...saved.comments,
-      },
+      comments: Object.fromEntries(
+        Object.entries({ ...base.comments, ...saved.comments }).map(([id, record]) => [
+          id,
+          normaliseRecord(record),
+        ]),
+      ),
     };
   } catch {
     return base;
@@ -135,9 +159,31 @@ export function saveDraft(commentId: string, draft: string) {
     if (record.outcome !== "open") return;
     if (record.draft === draft) return;
     record.draft = draft;
+    record.source = "edited";
+    record.model = null;
+    record.grokNote = null;
     record.testerA = null;
     record.testerB = null;
     record.approvedText = null;
+  });
+}
+
+export function saveGrokDraft(commentId: string, draft: string, model: string) {
+  return update(commentId, (_state, record) => {
+    if (record.outcome !== "open") return;
+    record.draft = draft;
+    record.source = "grok";
+    record.model = model;
+    record.grokNote = `${model} wrote this reply. The impact score is on the card. Testers score it, then Pat approves the exact text.`;
+    record.testerA = null;
+    record.testerB = null;
+    record.approvedText = null;
+  });
+}
+
+export function saveGrokNote(commentId: string, note: string) {
+  return update(commentId, (_state, record) => {
+    record.grokNote = note;
   });
 }
 

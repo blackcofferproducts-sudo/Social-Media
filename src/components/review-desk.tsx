@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   approveAction,
+  draftWithGrokAction,
   handoffAction,
   manualAction,
   publishAction,
@@ -28,6 +30,15 @@ import {
 } from "@/lib/policy";
 import type { CommentRecord } from "@/lib/store";
 
+function GrokButton({ disabled, label }: { disabled: boolean; label: string }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={disabled || pending}>
+      {pending ? `Asking ${label.replace(/^Ask /, "")}…` : label}
+    </Button>
+  );
+}
+
 const marks = [
   { name: "communication", label: "Communication. 2 sounds like a person. 0 sounds like a review." },
   {
@@ -42,13 +53,20 @@ export function ReviewDesk({
   record,
   testerNames,
   sentToday,
+  grokReady,
+  grokModel,
 }: {
   fixture: Fixture;
   record: CommentRecord;
   testerNames: { a: string; b: string };
   sentToday: number;
+  grokReady: boolean;
+  grokModel: string;
 }) {
   const [draft, setDraft] = useState(record.draft);
+  useEffect(() => {
+    setDraft(record.draft);
+  }, [record.draft, record.source]);
   const account = accounts[fixture.accountId];
   const onOthers = placeOf(fixture) === "others";
   const brief = commentBrief({
@@ -207,6 +225,29 @@ export function ReviewDesk({
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <p className="text-sm leading-6">{gate.headline}</p>
+            <form action={draftWithGrokAction} className="flex flex-col gap-2">
+              <input type="hidden" name="commentId" value={fixture.id} />
+              <p className="text-sm leading-6 text-muted-foreground">
+                {grokModel} writes the reply. The desk scores it out of 10, the testers score it, and
+                Pat approves the exact text.
+                {record.source === "grok" && record.model ? ` This text is from ${record.model}.` : ""}
+              </p>
+              {record.grokNote ? <p className="text-sm leading-6">{record.grokNote}</p> : null}
+              <GrokButton
+                disabled={closed || gate.decision.action === "handoff" || !grokReady}
+                label={record.source === "grok" ? `Ask ${grokModel} again` : `Ask ${grokModel}`}
+              />
+              {!grokReady ? (
+                <p className="text-sm leading-6 text-muted-foreground">
+                  Add XAI_API_KEY to connect {grokModel}. Until then the sheet voice stands in.
+                </p>
+              ) : null}
+              {gate.decision.action === "handoff" ? (
+                <p className="text-sm leading-6 text-muted-foreground">
+                  This one is a handoff, so {grokModel} does not write a public reply.
+                </p>
+              ) : null}
+            </form>
             {gate.draftFails.length > 0 ? (
               <ul className="flex flex-col gap-1 text-sm text-destructive">
                 {gate.draftFails.map((fail) => (

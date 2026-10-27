@@ -10,7 +10,7 @@ Everything already decided stays in this brief. The desk now also drafts comment
 
 ## Trained replies
 
-Replies on CITY JAM's own Threads posts are drafted from `data/training/sample-engagement.csv`, a sheet of 56 labeled comments and short conversations. The voice was trained on that sheet: short, spoken, one reaction to what the person said. Each draft follows the row's intent. If a fact is not in the sheet, the reply says it does not have it. It does not announce a rule, paste a link, or promise a result. There is no separate neural-net checkpoint and no model API key in this project. Pat still approves the exact text.
+Replies on CITY JAM's own Threads posts start from `data/training/sample-engagement.csv`, a sheet of 56 labeled comments and short conversations. On a comment, Ask Grok sends the post, the person's words, and that row's intent to Grok 4.7 on the xAI API (`grok-4.7`). Grok writes one short reply in a human voice. The desk rejects a link, a policy line, or a made-up fact, then scores likely impact out of 10. Testers score communication, engagement, and rationality. Pat approves the exact text. Nothing is mock-published before that. Set `XAI_API_KEY` to connect Grok. Until then the sheet voice stands in for the draft.
 
 ## What working means
 

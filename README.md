@@ -14,6 +14,14 @@ npm run dev
 
 The desk is at http://127.0.0.1:43123.
 
+Grok 4.7 writes the reply when you ask it on a comment. Put your xAI key in `.env.local` and restart the desk:
+
+```bash
+XAI_API_KEY=your-key-from-console.x.ai
+```
+
+The model name is `grok-4.7`. You can override it with `GROK_MODEL`. Without the key, the sheet voice stands in and the score and Pat's approval still work. The key stays on the server. It is not written into a reply.
+
 `npm test` checks the handoff rules, the gold replies, the 5-out-of-6 pass mark, Pat's approval of the exact text, and the daily caps.
 
 Scores and names are stored in `data/desk-state.json`. That file is local and is not committed. Deleting it restores the sample queue.

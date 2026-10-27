@@ -32,9 +32,10 @@ export default async function QueuePage({
           them, and use the waitlist link only if they asked how to join. Engagement: respond to
           something they said. Ask a question only when the post left it open. Rationality: say only what their post
           supports. No follower numbers, and no promised result. Replies on our Threads include
-          56 comments from the engagement sheet. The voice was trained on that sheet so a reply
-          sounds like a person: it follows the row&apos;s intent and the words they used, and it says
-          when a fact is missing. Pat still approves the exact text.
+          56 comments from the engagement sheet. Ask Grok 4.7 on the comment, and it writes a
+          human reply from that row&apos;s intent. The desk then scores the likely impact. Testers
+          score it, and Pat approves the exact text before anything is mock-published. Without an
+          xAI key, the sheet voice stands in.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -79,6 +80,9 @@ export default async function QueuePage({
                       <Badge variant="outline">
                         {fixture.training.sheetId} · {fixture.training.sheetCategory}
                       </Badge>
+                    ) : null}
+                    {desk.comments[fixture.id]?.source === "grok" ? (
+                      <Badge variant="outline">{desk.comments[fixture.id]?.model ?? "Grok"}</Badge>
                     ) : null}
                   </div>
                   <p className="text-sm leading-6">{fixture.comment}</p>
