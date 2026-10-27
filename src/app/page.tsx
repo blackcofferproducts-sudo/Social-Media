@@ -4,6 +4,7 @@ import { LiveReply } from "@/components/live-reply";
 import { Badge } from "@/components/ui/badge";
 import { accountIds, accounts } from "@/lib/accounts";
 import { modelPhase } from "@/lib/draft-status";
+import { drafterReady } from "@/lib/grok";
 import { fixtures, placeOf } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
 import { rateImpact } from "@/lib/policy";
@@ -39,7 +40,7 @@ export default async function QueuePage({
           the exact text before anything is mock-published.
         </p>
       </div>
-      <LiveReply />
+      <LiveReply connected={drafterReady()} />
       <div className="flex flex-wrap gap-2">
         <Filter href="/" current={view === "others"} label="On other people's posts" />
         <Filter href="/?view=replies" current={view === "replies"} label="Replies on our Threads" />

@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 const initial = { reply: "", note: "", impact: "" };
 
-export function LiveReply() {
+export function LiveReply({ connected }: { connected: boolean }) {
   const [state, setState] = useState(initial);
   const [pending, setPending] = useState(false);
 
@@ -43,6 +43,9 @@ export function LiveReply() {
       <CardContent className="flex flex-col gap-3">
         <p className="text-sm leading-6 text-muted-foreground">
           Paste the post and the comment. Grok 4.7 writes the reply and it shows here.
+        </p>
+        <p className="text-sm leading-6">
+          {connected ? "Grok 4.7 is connected." : "Grok 4.7 is not connected on this desk."}
         </p>
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">

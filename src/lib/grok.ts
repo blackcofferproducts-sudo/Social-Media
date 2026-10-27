@@ -292,7 +292,13 @@ async function runCursor(system: string, user: string, key: string) {
   const cursorKey = key || env.CURSOR_API_KEY?.trim() || readEnvFile("CURSOR_API_KEY");
   const hide = (text: string) => (cursorKey ? text.replaceAll(cursorKey, "[key]") : text).slice(0, 300);
   if (!cursorKey) {
-    return { ok: false as const, note: "CURSOR_API_KEY is not set." };
+    const where = process.cwd();
+    const file = fs.existsSync(path.join(where, ".env.local"));
+    console.error(`[live-reply] missing cursor key cwd=${where} envFile=${file}`);
+    return {
+      ok: false as const,
+      note: `This desk cannot read the Cursor key (cwd ${where}, .env.local ${file ? "found" : "missing"}).`,
+    };
   }
   process.env.CURSOR_API_KEY = cursorKey;
   try {
