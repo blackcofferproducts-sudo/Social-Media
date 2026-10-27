@@ -186,7 +186,7 @@ function praise(lower: string, want: string) {
   else if (/where can i read|covers look/.test(lower)) {
     lines.push("The covers are doing the work. I don't have a link I can send for the Magazine yet.");
   } else if (/live stuff|just releases/.test(lower)) {
-    lines.push("Live shows as well as releases.");
+    lines.push("It covers live shows as well as releases. A gig can sit in an issue the same way a record can. I don't have a link for the Magazine yet.");
   } else if (/thank/.test(want)) lines.push("Glad that one landed.");
   if (/feature/.test(want) && !lines.some((line) => /Feature/.test(line))) {
     lines.push("If the record's finished, send that. The Feature listens to the sound, not the count.");
@@ -197,7 +197,7 @@ function praise(lower: string, want: string) {
 function joining(lower: string, want: string) {
   const lines: string[] = [];
   if (/how do i actually join|is there an app/.test(lower)) {
-    lines.push("Yeah, there's an app. This page isn't where you sign up.");
+    lines.push("Yeah, there's an app. This page is the post, not the sign-up. You join in the app. I don't have a link to put on this reply.");
   } else if (/released stuff|just demos|join with just demos/.test(lower)) {
     lines.push("Demos are enough to join. The Feature is the one that wants a finished record.");
   } else if (/session bassist|not really an artist/.test(lower)) {
@@ -205,7 +205,7 @@ function joining(lower: string, want: string) {
   } else if (/difference between maestro and creator labs/.test(lower)) {
     lines.push("Creator Labs is for making your own music. Maestro is a different path, and it has a waitlist.");
   } else if (/maestro sounds like me|how do i get on that/.test(lower)) {
-    lines.push("If Maestro's the fit, the waitlist is how you ask.");
+    lines.push("If Maestro's the fit, the waitlist is how you ask. It's for people who teach or produce as well as play their own stuff. I don't have a link to drop here.");
   } else if (/teach guitar/.test(lower)) {
     lines.push("Teaching, and producing a bit on the side, can sit with Maestro. Creator Labs is the other one, for your own records.");
   } else if (/music ambassador/.test(lower)) {
@@ -249,7 +249,7 @@ function collab(lower: string, want: string) {
   } else if (/neo soul|voice memos/.test(lower)) {
     lines.push("Five songs on voice memos is enough to start looking.");
   } else if (/live already|coming soon/.test(lower)) {
-    lines.push("I don't know if Marketplace is open yet.");
+    lines.push("I don't know if Marketplace is open yet. I haven't been given a date, so I can't tell you if it's live or still on the way.");
   }
   if (/marketplace/.test(want) && !lines.some((line) => /Marketplace/.test(line))) {
     lines.push("Marketplace is where people look for each other.");
@@ -395,7 +395,7 @@ function feedback(lower: string, want: string) {
   } else if (/check my track|honest feedback|dreampop|would you listen/.test(lower)) {
     lines.push("I can't give the dreampop track a proper listen under this post. If it's finished, send the record. We listen to the sound.");
   } else if (/pls listen|please listen/.test(lower) || lower.length < 20) {
-    lines.push("What did you make? I haven't heard it yet.");
+    lines.push("What did you make? That line on its own doesn't tell me the track. If it's finished, put it forward for the Feature. They listen to the sound.");
   }
   if (/feature/.test(want) && !lines.some((line) => /Feature/.test(line))) {
     lines.push("The Feature is how a finished record gets put forward. They listen to the sound.");
@@ -411,7 +411,7 @@ function burnout(lower: string, want: string) {
   if (/10 years|dont even want to open the daw|don't even want to open/.test(lower)) {
     lines.push("Ten years in, and the DAW stays shut. You're not the only one.");
   } else if (/fun again|numbers and posting|posting schedules/.test(lower)) {
-    lines.push("Yeah. It stops being fun once it's a posting schedule.");
+    lines.push("Yeah. It stops being fun once every week is a posting schedule. The sound was the point, and the numbers don't have to be the whole of it.");
   } else if (/like a course/.test(lower)) {
     lines.push("Creator Labs is people working on their own music together. Not a certificate.");
   } else if (/thinking of quitting/.test(lower)) {

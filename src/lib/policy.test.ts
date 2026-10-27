@@ -52,6 +52,20 @@ describe("training sheet", () => {
     assert.doesNotMatch(leeds, /Leeds is covered|Leeds is not|won't say yes or no/);
   });
 
+  it("gives a fuller reply when the question needs one, and leaves a simple thanks short", () => {
+    const fuller = ["train-v18", "train-v03", "train-c30", "train-v02", "train-c32", "train-c04"];
+    for (const id of fuller) {
+      const fixture = fixtures.find((item) => item.id === id);
+      assert.ok(fixture, id);
+      assert.ok(fixture.suggestedDraft.length > 90, fixture.suggestedDraft);
+      const sentences = fixture.suggestedDraft.split(/[.?!]/).filter((part) => part.trim().length > 0);
+      assert.ok(sentences.length >= 2, `${id} ${fixture.suggestedDraft}`);
+    }
+    const thanks = fixtures.find((item) => item.id === "train-c01");
+    assert.ok(thanks);
+    assert.ok(thanks.suggestedDraft.length < 80);
+  });
+
   it("finds a neighbour in the same kind of comment", () => {
     const near = nearestIds(sheet, "C04");
     assert.ok(near.length === 2);
