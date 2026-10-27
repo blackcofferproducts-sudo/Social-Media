@@ -26,8 +26,43 @@ async function pickModel(apiKey: string): Promise<ModelSelection> {
   return { id: chosen.id, params: variant?.params };
 }
 
+function loadKey() {
+  const current = process.env.CURSOR_API_KEY?.trim();
+  if (current) return current;
+  const roots = new Set<string>();
+  const fromEnv = process.env.CITYJAM_ROOT?.trim();
+  if (fromEnv) roots.add(fromEnv);
+  roots.add(path.resolve(__dirname, ".."));
+  let dir = process.cwd();
+  for (let i = 0; i < 6; i += 1) {
+    roots.add(dir);
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  for (const root of roots) {
+    let text = "";
+    try {
+      text = fs.readFileSync(path.join(root, ".env.local"), "utf8");
+    } catch {
+      continue;
+    }
+    for (const line of text.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eq = trimmed.indexOf("=");
+      if (eq < 1 || trimmed.slice(0, eq).trim() !== "CURSOR_API_KEY") continue;
+      const value = trimmed.slice(eq + 1).trim().replace(/^['"]|['"]$/g, "");
+      if (!value) continue;
+      process.env.CURSOR_API_KEY = value;
+      return value;
+    }
+  }
+  return "";
+}
+
 async function main() {
-  const key = process.env.CURSOR_API_KEY?.trim();
+  const key = loadKey();
   if (!key) {
     write({ ok: false, note: "CURSOR_API_KEY is not set." });
     return;

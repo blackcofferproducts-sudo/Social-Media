@@ -45,17 +45,24 @@ function readEnvFile(name: string) {
 }
 
 function localEnv(name: string) {
-  const direct =
-    name === "CURSOR_API_KEY"
-      ? process.env.CURSOR_API_KEY
-      : name === "XAI_API_KEY"
-        ? process.env.XAI_API_KEY
-        : name === "GROK_MODEL"
-          ? process.env.GROK_MODEL
-          : process.env[name];
-  const current = direct?.trim();
+  const current = process.env[name]?.trim();
   if (current) return current;
   return readEnvFile(name);
+}
+
+function projectRoot() {
+  const candidates: string[] = [];
+  let dir = process.cwd();
+  for (let i = 0; i < 6; i += 1) {
+    candidates.push(dir);
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  for (const candidate of candidates) {
+    if (fs.existsSync(path.join(candidate, "scripts", "cursor-reply.ts"))) return candidate;
+  }
+  return process.cwd();
 }
 
 export function grokModelName() {
@@ -237,9 +244,6 @@ export async function askGrok(fixture: Fixture, fetchImpl: FetchLike = fetch) {
 
 export async function askCursor(fixture: Fixture) {
   const key = localEnv("CURSOR_API_KEY");
-  if (!key) {
-    return { ok: false as const, note: "CURSOR_API_KEY is not set." };
-  }
   if (fixture.expected === "handoff") {
     return { ok: false as const, note: "This comment is a handoff. Cursor does not write a public reply." };
   }
@@ -267,10 +271,14 @@ export async function askCursor(fixture: Fixture) {
 }
 
 function runCursor(system: string, user: string, key: string) {
-  const script = path.join(process.cwd(), "scripts/cursor-reply.ts");
+  const root = projectRoot();
+  const script = path.join(root, "scripts", "cursor-reply.ts");
+  const env: NodeJS.ProcessEnv = { ...process.env, CITYJAM_ROOT: root };
+  if (key) env.CURSOR_API_KEY = key;
+  else delete env.CURSOR_API_KEY;
   const child = spawn("npx", ["tsx", script], {
-    cwd: process.cwd(),
-    env: { ...process.env, CURSOR_API_KEY: key },
+    cwd: root,
+    env,
     stdio: ["pipe", "pipe", "pipe"],
   });
   let stdout = "";
@@ -290,7 +298,7 @@ function runCursor(system: string, user: string, key: string) {
     }, 120_000);
     child.on("close", (code, signal) => {
       clearTimeout(timer);
-      const hide = (text: string) => text.replaceAll(key, "[key]").slice(0, 300);
+      const hide = (text: string) => (key ? text.replaceAll(key, "[key]") : text).slice(0, 300);
       let parsed: { ok?: boolean; text?: string; model?: string; note?: string } | null = null;
       try {
         parsed = JSON.parse(stdout.trim() || "{}");
@@ -311,9 +319,5 @@ function runCursor(system: string, user: string, key: string) {
 
 export async function askDrafter(fixture: Fixture) {
   if (grokReady()) return askGrok(fixture);
-  if (cursorReady()) return askCursor(fixture);
-  return {
-    ok: false as const,
-    note: "The reply was not written. Put CURSOR_API_KEY or XAI_API_KEY in .env.local and restart the desk.",
-  };
+  return askCursor(fixture);
 }

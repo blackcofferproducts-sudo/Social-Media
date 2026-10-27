@@ -1,8 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
-import { liveReplyAction } from "@/app/actions";
+import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -10,17 +8,32 @@ import { Textarea } from "@/components/ui/textarea";
 
 const initial = { reply: "", note: "", impact: "" };
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending}>
-      {pending ? "Writing the reply…" : "Get a reply"}
-    </Button>
-  );
-}
-
 export function LiveReply() {
-  const [state, action] = useActionState(liveReplyAction, initial);
+  const [state, setState] = useState(initial);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setState(initial);
+    try {
+      const response = await fetch("/api/live-reply", {
+        method: "POST",
+        body: new FormData(event.currentTarget),
+      });
+      const result = (await response.json()) as typeof initial;
+      setState({
+        reply: result.reply ?? "",
+        note: result.note ?? "",
+        impact: result.impact ?? "",
+      });
+    } catch {
+      setState({ ...initial, note: "The desk could not be reached. Try the reply again." });
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -30,7 +43,7 @@ export function LiveReply() {
         <p className="text-sm leading-6 text-muted-foreground">
           Paste the post and the comment. Grok 4.7 writes the reply and it shows here.
         </p>
-        <form action={action} className="flex flex-col gap-3">
+        <form onSubmit={onSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
             <Label htmlFor="live-post">Their post</Label>
             <Textarea id="live-post" name="post" required className="min-h-24" />
@@ -50,7 +63,9 @@ export function LiveReply() {
               On our post
             </label>
           </fieldset>
-          <SubmitButton />
+          <Button type="submit" disabled={pending}>
+            {pending ? "Writing the reply…" : "Get a reply"}
+          </Button>
         </form>
         {state.note ? <p className="text-sm leading-6">{state.note}</p> : null}
         {state.reply ? (
