@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
+import { ArrivalDrafts } from "@/components/arrival-drafts";
 import { ReviewDesk } from "@/components/review-desk";
+import { needsModelDraft, WRITING_NOTE } from "@/lib/draft-status";
 import { fixtureById } from "@/lib/fixtures";
-import { drafterName, drafterReady } from "@/lib/grok";
-import { getDesk, sentToday } from "@/lib/store";
+import { getDesk, markWriting, sentToday } from "@/lib/store";
 
 export default async function CommentPage({
   params,
@@ -13,17 +14,22 @@ export default async function CommentPage({
   const fixture = fixtureById(id);
   if (!fixture) notFound();
   const desk = getDesk();
-  const record = desk.comments[id];
+  let record = desk.comments[id];
   if (!record) notFound();
+  if (needsModelDraft(fixture, record)) {
+    markWriting(id, WRITING_NOTE);
+    record = { ...record, grokNote: WRITING_NOTE };
+  }
 
   return (
-    <ReviewDesk
-      fixture={fixture}
-      record={record}
-      testerNames={desk.testerNames}
-      sentToday={sentToday(desk, fixture.accountId)}
-      grokReady={drafterReady()}
-      grokModel={drafterName()}
-    />
+    <>
+      <ArrivalDrafts focusId={id} once />
+      <ReviewDesk
+        fixture={fixture}
+        record={record}
+        testerNames={desk.testerNames}
+        sentToday={sentToday(desk, fixture.accountId)}
+      />
+    </>
   );
 }

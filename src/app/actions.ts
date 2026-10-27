@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { draftNext } from "@/lib/auto-draft";
 import { askDrafter } from "@/lib/grok";
 import { fixtureById } from "@/lib/fixtures";
 import type { TesterScore } from "@/lib/policy";
@@ -36,6 +37,12 @@ function scoreFrom(formData: FormData): TesterScore {
 export async function saveNamesAction(formData: FormData) {
   saveTesterNames(String(formData.get("testerA") ?? ""), String(formData.get("testerB") ?? ""));
   refresh();
+}
+
+export async function draftNextAction(focusId?: string, scope?: "others" | "replies") {
+  const status = await draftNext(focusId, scope);
+  if (status === "worked") refresh(focusId);
+  return status;
 }
 
 export async function draftWithGrokAction(formData: FormData) {

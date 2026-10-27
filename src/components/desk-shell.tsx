@@ -1,5 +1,4 @@
 import { DeskNav } from "@/components/desk-nav";
-import { cursorReady, grokReady } from "@/lib/grok";
 import { namesAreSet } from "@/lib/policy";
 import { getDesk } from "@/lib/store";
 
@@ -27,11 +26,7 @@ export function DeskShell({ children }: { children: React.ReactNode }) {
       </header>
       <div className="border-b border-border bg-muted/40">
         <p className="mx-auto max-w-6xl px-4 py-2 text-sm sm:px-6">
-          {grokReady()
-            ? "Grok 4.7 writes the reply when you ask on a comment."
-            : cursorReady()
-              ? "Cursor is on. Ask Cursor on a comment and Grok 4.7 writes the reply."
-              : "Ask Cursor on a comment. Add the Cursor key in .env.local if the reply does not come back."}
+          A comment comes in, Grok 4.7 writes the reply, then it waits for a score and Pat&apos;s approval.
         </p>
       </div>
       {!named ? (

@@ -10,7 +10,7 @@ Everything already decided stays in this brief. The desk now also drafts comment
 
 ## Trained replies
 
-Replies on CITY JAM's own Threads posts start from `data/training/sample-engagement.csv`, a sheet of 56 labeled comments and short conversations. On a comment, Ask Grok sends the post, the person's words, and that row's intent to Grok 4.7 on the xAI API (`grok-4.7`). Grok writes a human reply: one or two sentences for a simple reaction, and up to three when they asked how something works. The desk rejects a link, a policy line, or a made-up fact, then scores likely impact out of 10. Testers score communication, engagement, and rationality. Pat approves the exact text. Nothing is mock-published before that. Set `XAI_API_KEY` to connect Grok. Until then, if `CURSOR_API_KEY` is set, Cursor writes the reply from an empty folder and does not edit the project. With neither key, the sheet voice stands in.
+Replies on CITY JAM's own Threads posts start from `data/training/sample-engagement.csv`, a sheet of 56 labeled comments and short conversations. When a comment comes in, the post, the person's words, and that row's intent go to Grok 4.7. Grok writes a human reply: one or two sentences for a simple reaction, and up to three when they asked how something works. The desk rejects a link, a policy line, or a made-up fact, then scores likely impact out of 10. Testers score communication, engagement, and rationality. Pat approves the exact text. Nothing is mock-published before that. Set `XAI_API_KEY` to call Grok directly. Until then, if `CURSOR_API_KEY` is set, the same Grok 4.7 call goes through Cursor, from an empty folder, and does not edit the project. With neither key, the sheet voice stands in.
 
 ## What working means
 

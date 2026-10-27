@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useFormStatus } from "react-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   approveAction,
-  draftWithGrokAction,
   handoffAction,
   manualAction,
   publishAction,
   saveDraftAction,
   saveScoreAction,
 } from "@/app/actions";
+import { modelPhase } from "@/lib/draft-status";
 import { accounts } from "@/lib/accounts";
 import { placeOf, type Fixture } from "@/lib/fixture";
 import { categoryLabel, signalLabel } from "@/lib/labels";
@@ -29,15 +28,6 @@ import {
   type TesterScore,
 } from "@/lib/policy";
 import type { CommentRecord } from "@/lib/store";
-
-function GrokButton({ disabled, label }: { disabled: boolean; label: string }) {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={disabled || pending}>
-      {pending ? `Asking ${label.replace(/^Ask /, "")}…` : label}
-    </Button>
-  );
-}
 
 const marks = [
   { name: "communication", label: "Communication. 2 sounds like a person. 0 sounds like a review." },
@@ -53,15 +43,11 @@ export function ReviewDesk({
   record,
   testerNames,
   sentToday,
-  grokReady,
-  grokModel,
 }: {
   fixture: Fixture;
   record: CommentRecord;
   testerNames: { a: string; b: string };
   sentToday: number;
-  grokReady: boolean;
-  grokModel: string;
 }) {
   const [draft, setDraft] = useState(record.draft);
   useEffect(() => {
@@ -81,13 +67,16 @@ export function ReviewDesk({
     text: fixture.comment,
     place: placeOf(fixture),
   });
-  const dirty = draft !== record.draft;
+  const phase = modelPhase(fixture, record);
+  const hold = phase === "writing" || phase === "queued";
+  const shown = hold ? "" : draft;
+  const dirty = !hold && draft !== record.draft;
   const gate = evaluateGate({
     accountId: fixture.accountId,
     category: fixture.category,
     signal: fixture.signal,
     comment: fixture.comment,
-    draft,
+    draft: shown,
     place: placeOf(fixture),
     testerNames,
     testerA: dirty ? null : record.testerA,
@@ -102,7 +91,7 @@ export function ReviewDesk({
     category: fixture.category,
     signal: fixture.signal,
     comment: fixture.comment,
-    draft,
+    draft: shown,
     place: placeOf(fixture),
   });
 
@@ -198,19 +187,25 @@ export function ReviewDesk({
         <Card>
           <CardHeader>
             <CardTitle>
-              Likely impact {impact.score}/10
+              {hold ? "Likely impact" : `Likely impact ${impact.score}/10`}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm leading-6">
-            <p>
-              {impact.band}. This is a reading of the draft. It is not a count of replies, followers,
-              or sign-ups.
-            </p>
-            <ul className="flex flex-col gap-1 text-muted-foreground">
-              {impact.notes.map((note) => (
-                <li key={note}>{note}</li>
-              ))}
-            </ul>
+            {hold ? (
+              <p>The score appears when the reply is in. It is a reading of that text, not a count of replies.</p>
+            ) : (
+              <>
+                <p>
+                  {impact.band}. This is a reading of the draft. It is not a count of replies, followers,
+                  or sign-ups.
+                </p>
+                <ul className="flex flex-col gap-1 text-muted-foreground">
+                  {impact.notes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -225,30 +220,17 @@ export function ReviewDesk({
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <p className="text-sm leading-6">{gate.headline}</p>
-            <form action={draftWithGrokAction} className="flex flex-col gap-2">
-              <input type="hidden" name="commentId" value={fixture.id} />
-              <p className="text-sm leading-6 text-muted-foreground">
-                {grokReady && grokModel !== "Cursor"
-                  ? `${grokModel} writes the reply.`
-                  : "Cursor writes the reply with Grok 4.7."}{" "}
-                The desk scores it out of 10, the testers score it, and Pat approves the exact text.
-                {record.source === "grok" && record.model ? ` This text is from ${record.model}.` : ""}
-              </p>
-              {record.grokNote ? <p className="text-sm leading-6">{record.grokNote}</p> : null}
-              <GrokButton
-                disabled={closed || gate.decision.action === "handoff"}
-                label={
-                  record.source === "grok"
-                    ? `Ask ${grokReady && grokModel !== "Cursor" ? grokModel : "Cursor"} again`
-                    : `Ask ${grokReady && grokModel !== "Cursor" ? grokModel : "Cursor"}`
-                }
-              />
-              {gate.decision.action === "handoff" ? (
-                <p className="text-sm leading-6 text-muted-foreground">
-                  This one is a handoff, so {grokModel} does not write a public reply.
-                </p>
-              ) : null}
-            </form>
+            <p className="text-sm leading-6 text-muted-foreground">
+              {phase === "handoff"
+                ? "This one is a handoff. It does not go to the model."
+                : phase === "failed"
+                  ? record.grokNote
+                  : phase === "edited"
+                    ? "This wording was edited on the desk. Testers score it, then Pat approves the exact text."
+                    : phase === "ready"
+                      ? `${record.model ?? "Grok 4.7"} wrote this reply. Testers score it, then Pat approves the exact text.`
+                      : "This comment came in. Grok 4.7 is writing the reply. It then waits here for a score and Pat's approval."}
+            </p>
             {gate.draftFails.length > 0 ? (
               <ul className="flex flex-col gap-1 text-sm text-destructive">
                 {gate.draftFails.map((fail) => (
@@ -262,9 +244,10 @@ export function ReviewDesk({
               <Textarea
                 id="draft"
                 name="draft"
-                value={draft}
+                value={shown}
                 onChange={(event) => setDraft(event.target.value)}
-                disabled={closed || gate.decision.action === "handoff"}
+                placeholder={hold ? "Grok is writing the reply…" : ""}
+                disabled={closed || hold || gate.decision.action === "handoff"}
                 className="min-h-36"
               />
               {dirty ? (
@@ -294,7 +277,7 @@ export function ReviewDesk({
             commentId={fixture.id}
             score={record.testerA}
             result={dirty ? null : gate.testerA}
-            disabled={closed || dirty || gate.decision.action === "handoff"}
+            disabled={closed || dirty || hold || gate.decision.action === "handoff"}
           />
           <ScoreCard
             seat="b"
@@ -302,7 +285,7 @@ export function ReviewDesk({
             commentId={fixture.id}
             score={record.testerB}
             result={dirty ? null : gate.testerB}
-            disabled={closed || dirty || gate.decision.action === "handoff"}
+            disabled={closed || dirty || hold || gate.decision.action === "handoff"}
           />
         </div>
 

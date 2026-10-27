@@ -103,6 +103,7 @@ export function cleanReply(raw: string) {
     lines[0] = lines[0].replace(/^(?:here(?:'|’)s(?: the reply)?|reply|comment|draft)\s*:\s*/i, "");
   }
   text = lines.filter(Boolean).join(" ");
+  text = text.replace(/<\|[^|>]{0,40}\|>/g, " ");
   return text.replace(/\s+/g, " ").trim();
 }
 
@@ -205,6 +206,29 @@ export async function askCursor(fixture: Fixture) {
     return { ok: false as const, note: "This comment is a handoff. Cursor does not write a public reply." };
   }
   const prompt = grokPrompt(fixture, "Cursor");
+  let rejection = "The reply was empty.";
+  let last = "";
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const user =
+      attempt === 0
+        ? prompt.user
+        : `${prompt.user}\n\nYour last reply was rejected: ${rejection}\nWrite the reply as one or two spoken sentences.`;
+    const parsed = await runCursor(prompt.system, user, key);
+    if (!parsed.ok || !parsed.text) {
+      return { ok: false as const, note: `Cursor could not write the reply. ${parsed.note}` };
+    }
+    last = cleanReply(parsed.text);
+    const problem = rejectReply(last, fixture);
+    if (!problem) return { ok: true as const, text: last, model: parsed.model?.trim() || "Cursor" };
+    rejection = problem;
+  }
+  return {
+    ok: false as const,
+    note: `Grok replied, and the desk kept the previous text. ${rejection}`,
+  };
+}
+
+function runCursor(system: string, user: string, key: string) {
   const script = path.join(process.cwd(), "scripts/cursor-reply.ts");
   const child = spawn("npx", ["tsx", script], {
     cwd: process.cwd(),
@@ -221,36 +245,30 @@ export async function askCursor(fixture: Fixture) {
   child.stderr.on("data", (chunk) => {
     stderr += chunk;
   });
-  child.stdin.end(JSON.stringify({ system: prompt.system, user: prompt.user }));
-  const finished = await new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve) => {
+  child.stdin.end(JSON.stringify({ system, user }));
+  return new Promise<{ ok: boolean; text?: string; model?: string; note?: string }>((resolve) => {
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
     }, 120_000);
     child.on("close", (code, signal) => {
       clearTimeout(timer);
-      resolve({ code, signal });
+      const hide = (text: string) => text.replaceAll(key, "[key]").slice(0, 300);
+      let parsed: { ok?: boolean; text?: string; model?: string; note?: string } | null = null;
+      try {
+        parsed = JSON.parse(stdout.trim() || "{}");
+      } catch {
+        parsed = null;
+      }
+      if (!parsed?.ok || !parsed.text) {
+        resolve({
+          ok: false,
+          note: hide(parsed?.note || stderr || stdout || `Cursor exited ${code ?? signal}.`),
+        });
+        return;
+      }
+      resolve({ ok: true, text: parsed.text, model: parsed.model });
     });
   });
-  const hide = (text: string) => text.replaceAll(key, "[key]").slice(0, 300);
-  let parsed: { ok?: boolean; text?: string; model?: string; note?: string } | null = null;
-  try {
-    parsed = JSON.parse(stdout.trim() || "{}");
-  } catch {
-    parsed = null;
-  }
-  if (!parsed?.ok || !parsed.text) {
-    const detail = hide(parsed?.note || stderr || stdout || `Cursor exited ${finished.code ?? finished.signal}.`);
-    return { ok: false as const, note: `Cursor could not write the reply. ${detail}` };
-  }
-  const text = cleanReply(parsed.text);
-  const problem = rejectReply(text, fixture);
-  if (problem) {
-    return {
-      ok: false as const,
-      note: `Cursor replied, and the desk kept the previous text. ${problem} Last try: ${text.slice(0, 180)}`,
-    };
-  }
-  return { ok: true as const, text, model: parsed.model?.trim() || "Cursor" };
 }
 
 export async function askDrafter(fixture: Fixture) {

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { ArrivalDrafts } from "@/components/arrival-drafts";
 import { Badge } from "@/components/ui/badge";
 import { accountIds, accounts } from "@/lib/accounts";
+import { modelPhase } from "@/lib/draft-status";
 import { fixtures, placeOf } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
 import { rateImpact } from "@/lib/policy";
@@ -31,11 +33,9 @@ export default async function QueuePage({
           one point, no slogan. Goal: on someone else&apos;s post, earn a reply; on our post, answer
           them, and use the waitlist link only if they asked how to join. Engagement: respond to
           something they said. Ask a question only when the post left it open. Rationality: say only what their post
-          supports. No follower numbers, and no promised result. Replies on our Threads include
-          56 comments from the engagement sheet. Ask Cursor on the comment while no xAI key is
-          set, or Grok 4.7 when one is. The model writes a human reply from that row&apos;s intent.
-          The desk then scores the likely impact. Testers score it, and Pat approves the exact text
-          before anything is mock-published.
+          supports. No follower numbers, and no promised result. When a comment comes in, Grok 4.7
+          writes the reply. The desk scores the likely impact. Testers score it, and Pat approves
+          the exact text before anything is mock-published.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -55,8 +55,11 @@ export default async function QueuePage({
           ))}
         </div>
       ) : null}
+      <ArrivalDrafts scope={view === "replies" ? "replies" : "others"} />
       <ul className="flex flex-col gap-3">
         {rows.map((fixture) => {
+          const record = desk.comments[fixture.id];
+          const phase = record ? modelPhase(fixture, record) : "queued";
           const gate = gateFor(desk, fixture.id);
           const impact = rateImpact({
             accountId: fixture.accountId,
@@ -81,8 +84,11 @@ export default async function QueuePage({
                         {fixture.training.sheetId} · {fixture.training.sheetCategory}
                       </Badge>
                     ) : null}
-                    {desk.comments[fixture.id]?.source === "grok" ? (
-                      <Badge variant="outline">{desk.comments[fixture.id]?.model ?? "Grok"}</Badge>
+                    {phase === "writing" || phase === "queued" ? (
+                      <Badge variant="outline">Writing the reply</Badge>
+                    ) : null}
+                    {phase === "ready" ? (
+                      <Badge variant="outline">Waiting for score</Badge>
                     ) : null}
                   </div>
                   <p className="text-sm leading-6">{fixture.comment}</p>

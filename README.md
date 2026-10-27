@@ -14,7 +14,7 @@ npm run dev
 
 The desk is at http://127.0.0.1:43123.
 
-Grok 4.7 writes the reply when you ask it on a comment. Put your xAI key in `.env.local` and restart the desk:
+When a comment comes in, Grok 4.7 writes the reply, then the desk waits for a score and Pat's approval. Put your xAI key in `.env.local` and restart the desk:
 
 ```bash
 XAI_API_KEY=your-key-from-console.x.ai

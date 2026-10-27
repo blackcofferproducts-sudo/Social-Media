@@ -187,6 +187,13 @@ export function saveGrokNote(commentId: string, note: string) {
   });
 }
 
+export function markWriting(commentId: string, note: string) {
+  return update(commentId, (_state, record) => {
+    if (record.source !== "sheet" || record.outcome !== "open") return;
+    record.grokNote = note;
+  });
+}
+
 export function saveScore(commentId: string, seat: "a" | "b", score: TesterScore) {
   return update(commentId, (state, record) => {
     if (record.outcome !== "open") return;
