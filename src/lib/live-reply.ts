@@ -10,13 +10,12 @@ export type LiveReplyResult = {
 
 const empty = { reply: "", note: "", impact: "" };
 
-export function readLiveInput(post: string, comment: string, placeRaw: string) {
+export function readLiveInput(post: string, _comment: string, placeRaw: string) {
   const cleanPost = post.trim().slice(0, 4000);
-  const cleanComment = comment.trim().slice(0, 4000);
-  if (!cleanPost || !cleanComment) {
+  if (!cleanPost) {
     return {
       ok: false as const,
-      result: { ...empty, note: "Add both the post and the comment." },
+      result: { ...empty, note: "Add the post." },
     };
   }
   const place = placeRaw === "own" ? "own" : "others";
@@ -25,7 +24,7 @@ export function readLiveInput(post: string, comment: string, placeRaw: string) {
     accountId: "threads",
     author: "Live",
     post: cleanPost,
-    comment: cleanComment,
+    comment: cleanPost,
     category: "music",
     signal: "ordinary",
     expected: "reply",

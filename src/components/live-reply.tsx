@@ -42,7 +42,7 @@ export function LiveReply({ connected }: { connected: boolean }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <p className="text-sm leading-6 text-muted-foreground">
-          Paste the post and the comment. Grok 4.7 writes the reply and it shows here.
+          Paste the post. Grok 4.7 writes the reply and it shows here.
         </p>
         <p className="text-sm leading-6">
           {connected ? "Grok 4.7 is connected." : "Grok 4.7 is not connected on this desk."}
@@ -51,10 +51,6 @@ export function LiveReply({ connected }: { connected: boolean }) {
           <div className="flex flex-col gap-2">
             <Label htmlFor="live-post">Their post</Label>
             <Textarea id="live-post" name="post" required className="min-h-24" />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="live-comment">Their comment</Label>
-            <Textarea id="live-comment" name="comment" required className="min-h-24" />
           </div>
           <fieldset className="flex flex-wrap gap-4 text-sm">
             <legend className="sr-only">Where it sits</legend>

@@ -34,7 +34,7 @@ Scores and names are stored in `data/desk-state.json`. That file is local and is
 
 ## What you can do
 
-- Paste a live post and comment at the top of the queue, then get a reply.
+- Paste a live post at the top of the queue, then get a reply.
 - Open the queue. It starts on other people's posts. Switch to replies on our own Threads posts when you want those.
 - See whether the voice guide allows a reply, or the case must be handed to a person.
 - Write the two tester names on Limits. Until those names are saved, Pat's approval stays shut.

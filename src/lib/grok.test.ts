@@ -51,11 +51,14 @@ describe("grok", () => {
     assert.equal(needsModelDraft(reply, { ...sheet, source: "grok" }), false);
   });
 
-  it("needs both the post and the comment before a live reply", () => {
+  it("needs the post before a live reply", () => {
     assert.equal(readLiveInput("", "Hello", "others").ok, false);
-    const ready = readLiveInput("Today's tune is Branding Iron.", "Folk Fridays.", "others");
+    const ready = readLiveInput("Today's tune is Branding Iron.", "", "others");
     assert.equal(ready.ok, true);
-    if (ready.ok) assert.equal(ready.fixture.place, "others");
+    if (ready.ok) {
+      assert.equal(ready.fixture.place, "others");
+      assert.equal(ready.fixture.comment, ready.fixture.post);
+    }
   });
 
   it("reads only the reply out of a chat completion", () => {

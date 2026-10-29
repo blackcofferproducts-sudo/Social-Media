@@ -128,8 +128,10 @@ export function grokPrompt(fixture: Fixture, speaker = "Grok 4.7") {
     `What this reply is for: ${brief.goal}`,
     `Where it sits: ${place === "others" ? "a comment on someone else's post" : "a reply on CITY JAM's own post"}.`,
     `Their post: ${fixture.post}`,
-    `Their comment: ${fixture.comment}`,
   ];
+  if (fixture.comment.trim() && fixture.comment.trim() !== fixture.post.trim()) {
+    lines.push(`Their comment: ${fixture.comment}`);
+  }
   if (loss) {
     lines.push(
       "Use the song title they gave and say you will play it. Do not mention the death, the family, or anyone famous in the post.",
