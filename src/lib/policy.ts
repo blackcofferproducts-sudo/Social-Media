@@ -389,66 +389,140 @@ export function rateImpact(input: {
   }
 
   const place = input.place ?? "own";
-  const notes: string[] = [];
-  let score = 0;
+  const parts: { label: string; awarded: number; max: number; reason: string }[] = [];
   const shared = sharedWords(input.draft, input.comment);
   const musicAsk = asksForMusic(input.comment);
   const named = musicAsk && namesMusic(input.draft);
   const padded = named && paddedReply(input.draft);
   if (shared >= 2) {
-    score += 3;
-    notes.push("It uses details from their post, so they can see it was written for them.");
+    parts.push({
+      label: "Specific",
+      awarded: 3,
+      max: 3,
+      reason: "It uses details from their post, so they can see it was written for them.",
+    });
   } else if (shared === 1) {
-    score += 2;
-    notes.push("It picks up one detail from their post.");
+    parts.push({
+      label: "Specific",
+      awarded: 2,
+      max: 3,
+      reason: "It picks up one detail from their post, so 1 point stays off.",
+    });
   } else if (named && !padded) {
-    notes.push("It does not repeat their words. The names are the answer.");
+    parts.push({
+      label: "Specific",
+      awarded: 0,
+      max: 3,
+      reason: "It does not repeat their words. The names are the answer, so 3 points for their details stay off.",
+    });
   } else {
-    notes.push("It does not use a detail from their post, so it is easy to ignore.");
+    parts.push({
+      label: "Specific",
+      awarded: 0,
+      max: 3,
+      reason: "It does not use a detail from their post, so 3 points stay off.",
+    });
   }
 
   const fails = hardFails(input.draft, input.accountId, place, input.comment);
   const goalFail = fails.find((fail) => /Goal:|does not carry a link|voice|waitlist link is only/i.test(fail));
-  if (goalFail) notes.push(goalFail);
-  else {
-    score += 2;
-    notes.push("It fits the goal for this account.");
+  if (goalFail) {
+    parts.push({ label: "Goal", awarded: 0, max: 2, reason: `${goalFail} 2 points stay off.` });
+  } else {
+    parts.push({
+      label: "Goal",
+      awarded: 2,
+      max: 2,
+      reason: "It fits the goal for this account.",
+    });
   }
 
   if (questionRepeats(input.draft, input.comment)) {
-    score = Math.max(0, score - 2);
-    notes.push("The question asks for a choice the post already made, so a reply is unlikely.");
+    parts.push({
+      label: "Answer",
+      awarded: -2,
+      max: 3,
+      reason: "The question asks for a choice the post already made, so a reply is unlikely. 2 points are taken off.",
+    });
   } else if (named && !padded) {
-    score += 3;
-    notes.push("They asked for music. The reply names it and stops.");
+    parts.push({
+      label: "Answer",
+      awarded: 3,
+      max: 3,
+      reason: "They asked for music. The reply names it and stops.",
+    });
   } else if (musicAsk && padded) {
-    score = Math.max(0, score - 2);
-    notes.push("They asked for music. The reply names it, then adds a scene they did not ask for.");
+    parts.push({
+      label: "Answer",
+      awarded: -2,
+      max: 3,
+      reason: "They asked for music. The reply names it, then adds a scene they did not ask for. 2 points are taken off.",
+    });
   } else if (musicAsk) {
-    notes.push("They asked for music, and the reply does not name any.");
+    parts.push({
+      label: "Answer",
+      awarded: 0,
+      max: 3,
+      reason: "They asked for music, and the reply does not name any, so 3 points stay off.",
+    });
   } else if (input.draft.includes("?")) {
-    score += 3;
-    notes.push("It asks something the post left open, so a reply is more likely.");
+    parts.push({
+      label: "Answer",
+      awarded: 3,
+      max: 3,
+      reason: "It asks something the post left open, so a reply is more likely.",
+    });
   } else if (shared >= 1) {
-    score += 1;
-    notes.push("It answers the post without asking them to explain it again. A reply is possible, not requested.");
+    parts.push({
+      label: "Answer",
+      awarded: 1,
+      max: 3,
+      reason: "It answers the post without asking them to explain it again. 2 points stay off because it does not ask something the post left open.",
+    });
   } else {
-    notes.push("There is little reason for them to answer.");
+    parts.push({
+      label: "Answer",
+      awarded: 0,
+      max: 3,
+      reason: "There is little reason for them to answer, so 3 points stay off.",
+    });
   }
 
   const retells =
     describesALoss(input.comment) &&
     /\b(?:daughter|son|died|death|killed|accident|suicide|funeral|grief)\b/i.test(input.draft);
   const unsafe = fails.find((fail) => /Rationality|Blocklist|Stock AI|British English/i.test(fail));
-  if (retells) notes.push("It retells the loss. That costs trust, so the impact is poor.");
-  else if (unsafe) notes.push(unsafe);
-  else {
-    score += 2;
-    notes.push("It only says what their post supports. This is not a count of replies or followers.");
+  if (retells) {
+    parts.push({
+      label: "Trust",
+      awarded: 0,
+      max: 2,
+      reason: "It retells the loss. That costs trust, so 2 points stay off.",
+    });
+  } else if (unsafe) {
+    parts.push({ label: "Trust", awarded: 0, max: 2, reason: `${unsafe} 2 points stay off.` });
+  } else {
+    parts.push({
+      label: "Trust",
+      awarded: 2,
+      max: 2,
+      reason: "It only says what their post supports. This is not a count of replies or followers.",
+    });
   }
 
-  const clamped = Math.max(0, Math.min(10, score));
+  const raw = parts.reduce((sum, part) => sum + part.awarded, 0);
+  const clamped = Math.max(0, Math.min(10, raw));
   const band = clamped === 0 ? "None" : clamped <= 4 ? "Low" : clamped <= 6 ? "Limited" : clamped <= 8 ? "Sound" : "Strong";
+  const missed = 10 - clamped;
+  const notes = parts.map((part) => `${part.label}: ${part.awarded} of ${part.max}. ${part.reason}`);
+  if (missed > 0) {
+    const cuts = parts
+      .filter((part) => part.awarded < part.max)
+      .map((part) => `${part.label}, ${part.max - part.awarded} ${part.max - part.awarded === 1 ? "point" : "points"}: ${part.reason}`);
+    notes.unshift(
+      `${missed} ${missed === 1 ? "point was" : "points were"} not given. ${cuts.join(" ")}`,
+    );
+  }
   return { score: clamped, band, notes };
 }
 

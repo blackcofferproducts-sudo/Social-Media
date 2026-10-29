@@ -203,6 +203,8 @@ describe("pass mark", () => {
       place: "others",
     });
     assert.ok(stated.score >= 7 && stated.score <= 8, `statement scored ${stated.score}`);
+    assert.match(stated.notes[0] ?? "", new RegExp(`${10 - stated.score} points were not given`));
+    assert.match(stated.notes[0] ?? "", /2 points: It answers the post without asking/);
     assert.ok(repeated.score < stated.score, `repeated ${repeated.score} vs statement ${stated.score}`);
     assert.ok(repeated.score <= 10 && stated.score <= 10);
     assert.match(repeated.notes.join(" "), /already made/);
