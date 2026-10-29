@@ -219,6 +219,29 @@ describe("pass mark", () => {
     });
     assert.equal(none.score, 0);
     assert.equal(none.band, "None");
+
+    const music = "Could you recommend some good music, a playlist, or an underrated artist?";
+    const direct = rateImpact({
+      accountId: "threads",
+      category: "music",
+      signal: "ordinary",
+      comment: music,
+      draft: "Try Berwyn if you want someone a bit under the radar. Start with Dear Immigration.",
+      place: "others",
+    });
+    const scene = rateImpact({
+      accountId: "threads",
+      category: "music",
+      signal: "ordinary",
+      comment: music,
+      draft:
+        "That playlist is the thing I can actually see, same songs dropping in before you have decided. It makes me want to put one new artist in front of it. Try English Teacher and start with The World's Biggest Paving Slab, talky and bright. The next couple of tracks sit beside it. You will know in a minute if you want the rest.",
+      place: "others",
+    });
+    assert.ok(direct.score >= 7, `direct recommendation scored ${direct.score}`);
+    assert.equal(direct.band, "Sound");
+    assert.ok(scene.score < direct.score, `scene ${scene.score} vs direct ${direct.score}`);
+    assert.match(scene.notes.join(" "), /scene/);
   });
 
   it("rejects a link dropped onto someone else's post", () => {

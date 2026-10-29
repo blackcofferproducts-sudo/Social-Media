@@ -6,9 +6,10 @@ export type LiveReplyResult = {
   reply: string;
   note: string;
   impact: string;
+  criteria: string[];
 };
 
-const empty = { reply: "", note: "", impact: "" };
+const empty = { reply: "", note: "", impact: "", criteria: [] as string[] };
 
 export function readLiveInput(post: string, _comment: string, placeRaw: string) {
   const cleanPost = post.trim().slice(0, 4000);
@@ -60,5 +61,6 @@ export async function askLive(post: string, comment: string, placeRaw: string): 
     reply: result.text,
     note: "",
     impact: `${impact.score}/10 · ${impact.band}`,
+    criteria: impact.notes,
   };
 }

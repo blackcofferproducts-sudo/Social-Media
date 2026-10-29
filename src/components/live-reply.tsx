@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-const initial = { reply: "", note: "", impact: "" };
+const initial = { reply: "", note: "", impact: "", criteria: [] as string[] };
 
 export function LiveReply({ connected }: { connected: boolean }) {
   const [state, setState] = useState(initial);
@@ -27,6 +27,7 @@ export function LiveReply({ connected }: { connected: boolean }) {
         reply: result.reply ?? "",
         note: result.note ?? "",
         impact: result.impact ?? "",
+        criteria: Array.isArray(result.criteria) ? result.criteria : [],
       });
     } catch {
       setState({ ...initial, note: "The desk could not be reached. Try the reply again." });
@@ -73,6 +74,13 @@ export function LiveReply({ connected }: { connected: boolean }) {
             <p className="text-sm leading-6">{state.reply}</p>
             {state.impact ? (
               <p className="text-sm text-muted-foreground">Likely impact {state.impact}</p>
+            ) : null}
+            {state.criteria.length > 0 ? (
+              <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
+                {state.criteria.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             ) : null}
           </div>
         ) : null}

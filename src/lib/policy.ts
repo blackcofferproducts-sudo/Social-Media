@@ -330,6 +330,23 @@ function sharedWords(draft: string, source: string) {
   return count;
 }
 
+function asksForMusic(text: string) {
+  return (
+    /\b(?:recommend(?:ation|s)?|suggest(?:ion|s)?)\b/i.test(text) &&
+    /\b(?:song|songs|music|playlist|artist|artists|album|albums|track|tracks)\b/i.test(text)
+  );
+}
+
+function namesMusic(draft: string) {
+  return /\b[A-Z][a-zA-Z0-9'’]+(?:\s+[A-Z][a-zA-Z0-9'’]+)+\b/.test(draft);
+}
+
+function paddedReply(draft: string) {
+  const sentences = draft.split(/[.!?]/).filter((part) => part.trim().length > 0);
+  const words = draft.trim().split(/\s+/).filter(Boolean);
+  return sentences.length > 2 || words.length > 45;
+}
+
 function questionRepeats(draft: string, source: string) {
   const mark = draft.indexOf("?");
   if (mark < 0) return false;
@@ -375,12 +392,17 @@ export function rateImpact(input: {
   const notes: string[] = [];
   let score = 0;
   const shared = sharedWords(input.draft, input.comment);
+  const musicAsk = asksForMusic(input.comment);
+  const named = musicAsk && namesMusic(input.draft);
+  const padded = named && paddedReply(input.draft);
   if (shared >= 2) {
     score += 3;
     notes.push("It uses details from their post, so they can see it was written for them.");
   } else if (shared === 1) {
     score += 2;
     notes.push("It picks up one detail from their post.");
+  } else if (named && !padded) {
+    notes.push("It does not repeat their words. The names are the answer.");
   } else {
     notes.push("It does not use a detail from their post, so it is easy to ignore.");
   }
@@ -396,6 +418,14 @@ export function rateImpact(input: {
   if (questionRepeats(input.draft, input.comment)) {
     score = Math.max(0, score - 2);
     notes.push("The question asks for a choice the post already made, so a reply is unlikely.");
+  } else if (named && !padded) {
+    score += 3;
+    notes.push("They asked for music. The reply names it and stops.");
+  } else if (musicAsk && padded) {
+    score = Math.max(0, score - 2);
+    notes.push("They asked for music. The reply names it, then adds a scene they did not ask for.");
+  } else if (musicAsk) {
+    notes.push("They asked for music, and the reply does not name any.");
   } else if (input.draft.includes("?")) {
     score += 3;
     notes.push("It asks something the post left open, so a reply is more likely.");
