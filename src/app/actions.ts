@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { needsModelDraft } from "@/lib/draft-status";
 import { draftNext } from "@/lib/auto-draft";
 import { askDrafter } from "@/lib/grok";
-import { askLive, type LiveReplyResult } from "@/lib/live-reply";
+import { askLive, enteredComment, type LiveReplyResult } from "@/lib/live-reply";
 import { searchThreadsMusic } from "@/lib/threads";
 import { addIncoming, getDesk, resolveFixture } from "@/lib/store";
 import type { TesterScore } from "@/lib/policy";
@@ -40,6 +40,18 @@ function scoreFrom(formData: FormData): TesterScore {
 export async function saveNamesAction(formData: FormData) {
   saveTesterNames(String(formData.get("testerA") ?? ""), String(formData.get("testerB") ?? ""));
   refresh();
+}
+
+export async function saveCommentAction(formData: FormData) {
+  const read = enteredComment(
+    String(formData.get("comment") ?? ""),
+    String(formData.get("place") ?? ""),
+    `entered-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+  );
+  if (!read.ok) return { ok: false as const, note: read.note, place: "others" as const };
+  addIncoming(read.fixture);
+  refresh(read.fixture.id);
+  return { ok: true as const, note: read.note, place: read.fixture.place ?? "others" };
 }
 
 export async function liveReplyAction(_prev: LiveReplyResult, formData: FormData): Promise<LiveReplyResult> {

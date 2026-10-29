@@ -156,7 +156,7 @@ export function addIncoming(fixture: Fixture) {
   if (state.incoming.some((item) => item.id === fixture.id) || state.comments[fixture.id]) {
     return state;
   }
-  state.incoming.push(fixture);
+  state.incoming.unshift(fixture);
   state.comments[fixture.id] = blankComment("");
   return writeDesk(state);
 }

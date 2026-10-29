@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { needsModelDraft } from "./draft-status";
-import { readLiveInput } from "./live-reply";
+import { enteredComment, readLiveInput } from "./live-reply";
 import { fixtures } from "./fixtures";
 import { cleanReply, grokPrompt, rejectReply, replyText } from "./grok";
 import type { CommentRecord } from "./store";
@@ -50,6 +50,17 @@ describe("grok", () => {
     assert.equal(needsModelDraft(reply, sheet), true);
     assert.equal(needsModelDraft(handoff, sheet), false);
     assert.equal(needsModelDraft(reply, { ...sheet, source: "grok" }), false);
+  });
+
+  it("saves an entered comment as the text shown in the queue", () => {
+    assert.equal(enteredComment("  ", "others", "entered-blank").ok, false);
+    const saved = enteredComment("  Try this song.  ", "own", "entered-1");
+    assert.equal(saved.ok, true);
+    if (!saved.ok) return;
+    assert.equal(saved.fixture.id, "entered-1");
+    assert.equal(saved.fixture.comment, "Try this song.");
+    assert.equal(saved.fixture.post, "Try this song.");
+    assert.equal(saved.fixture.place, "own");
   });
 
   it("needs the post before a live reply", () => {

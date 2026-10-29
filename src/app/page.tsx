@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrivalDrafts } from "@/components/arrival-drafts";
+import { EnterComment } from "@/components/enter-comment";
 import { MusicIntake } from "@/components/music-intake";
 import { Badge } from "@/components/ui/badge";
 import { accountIds, accounts } from "@/lib/accounts";
@@ -46,6 +47,7 @@ export default async function QueuePage({
             copy and clear when it goes idle.
           </p>
         ) : null}
+        <EnterComment key={view} place={view === "replies" ? "own" : "others"} />
         {view === "others" ? <MusicIntake /> : null}
       </div>
       <div className="flex flex-wrap gap-2">
@@ -70,7 +72,7 @@ export default async function QueuePage({
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
           {view === "replies"
             ? "No replies are waiting on our Threads posts."
-            : "No music posts from Threads are waiting."}
+            : "No comments are waiting. A comment you save shows up here."}
         </p>
       ) : null}
       <ul className="flex flex-col gap-3">
@@ -78,7 +80,8 @@ export default async function QueuePage({
           const record = desk.comments[fixture.id];
           const phase = record ? modelPhase(fixture, record) : "queued";
           const gate = gateFor(desk, fixture.id);
-          const fetched = desk.incoming.some((item) => item.id === fixture.id);
+          const fromThreads = fixture.id.startsWith("threads-");
+          const entered = fixture.id.startsWith("entered-");
           const impact = rateImpact({
             accountId: fixture.accountId,
             category: fixture.category,
@@ -96,7 +99,8 @@ export default async function QueuePage({
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">{accounts[fixture.accountId].short}</Badge>
-                    {fetched ? <Badge variant="outline">Threads</Badge> : null}
+                    {fromThreads ? <Badge variant="outline">Threads</Badge> : null}
+                    {entered ? <Badge variant="outline">Entered</Badge> : null}
                     <Badge variant="outline">{signalLabel[fixture.signal]}</Badge>
                     {fixture.training ? (
                       <Badge variant="outline">

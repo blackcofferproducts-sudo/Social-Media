@@ -11,6 +11,25 @@ export type LiveReplyResult = {
 
 const empty = { reply: "", note: "", impact: "", criteria: [] as string[] };
 
+export function enteredComment(text: string, placeRaw: string, id: string) {
+  const clean = text.trim().slice(0, 4000);
+  if (!clean) return { ok: false as const, note: "Add the comment." };
+  const place = placeRaw === "own" ? "own" : "others";
+  const fixture: Fixture = {
+    id,
+    accountId: "threads",
+    author: "Entered",
+    post: clean,
+    comment: clean,
+    category: "music",
+    signal: "ordinary",
+    expected: "reply",
+    suggestedDraft: "",
+    place,
+  };
+  return { ok: true as const, fixture, note: "Saved. It is in the list below." };
+}
+
 export function readLiveInput(post: string, _comment: string, placeRaw: string) {
   const cleanPost = post.trim().slice(0, 4000);
   if (!cleanPost) {
