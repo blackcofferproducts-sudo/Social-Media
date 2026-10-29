@@ -42,7 +42,7 @@ Scores and names are stored in `data/desk-state.json`. That file is local and is
 
 ## What you can do
 
-- Paste a comment on the queue. It is saved and listed below, then drafted and scored. Pat's approval stays the same.
+- Paste a comment on the queue. The model writes the reply first, then the comment and that reply are saved and listed below. Pat's approval stays the same.
 - The queue also asks Threads for recent public posts that match `music`. Nothing is published back to Threads.
 - Open the queue. It starts on other people's posts. Switch to replies on our own Threads posts when you want those.
 - See whether the voice guide allows a reply, or the case must be handed to a person.

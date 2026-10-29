@@ -40,8 +40,8 @@ export function EnterComment({ place }: { place: "others" | "own" }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <p className="text-sm leading-6 text-muted-foreground">
-          Paste a comment. It is saved and shown in the list below. Grok writes the reply, then it
-          waits for a score and Pat&apos;s approval.
+          Paste a comment. The model writes the reply first. The comment and that reply are then
+          saved and shown in the list below, and they wait for a score and Pat&apos;s approval.
         </p>
         <form onSubmit={onSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
@@ -60,7 +60,7 @@ export function EnterComment({ place }: { place: "others" | "own" }) {
             </label>
           </fieldset>
           <Button type="submit" disabled={pending}>
-            {pending ? "Saving…" : "Save comment"}
+            {pending ? "Writing the reply…" : "Get a reply"}
           </Button>
         </form>
         {note ? <p className="text-sm leading-6">{note}</p> : null}

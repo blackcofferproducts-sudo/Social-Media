@@ -115,6 +115,9 @@ export default async function QueuePage({
                     ) : null}
                   </div>
                   <p className="text-sm leading-6">{fixture.comment}</p>
+                  {record?.draft ? (
+                    <p className="text-sm leading-6 text-muted-foreground">Reply: {record.draft}</p>
+                  ) : null}
                   <p className="text-xs text-muted-foreground">{categoryLabel[fixture.category]}</p>
                 </div>
                 <p className="max-w-xs shrink-0 text-sm text-muted-foreground sm:text-right">

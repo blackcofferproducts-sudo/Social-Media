@@ -151,13 +151,19 @@ export function resolveFixture(state: DeskState, id: string) {
   return state.incoming.find((item) => item.id === id) ?? fixtures.find((item) => item.id === id);
 }
 
-export function addIncoming(fixture: Fixture) {
+export function addIncoming(fixture: Fixture, reply?: { text: string; model: string }) {
   const state = getDesk();
   if (state.incoming.some((item) => item.id === fixture.id) || state.comments[fixture.id]) {
     return state;
   }
   state.incoming.unshift(fixture);
-  state.comments[fixture.id] = blankComment("");
+  const record = blankComment(reply?.text ?? "");
+  if (reply?.text) {
+    record.source = "grok";
+    record.model = reply.model;
+    record.grokNote = `${reply.model} wrote this reply. The impact score is on the card. Testers score it, then Pat approves the exact text.`;
+  }
+  state.comments[fixture.id] = record;
   return writeDesk(state);
 }
 

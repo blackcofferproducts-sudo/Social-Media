@@ -7,7 +7,7 @@ import { askDrafter } from "@/lib/grok";
 import { askLive, enteredComment, type LiveReplyResult } from "@/lib/live-reply";
 import { searchThreadsMusic } from "@/lib/threads";
 import { addIncoming, getDesk, resolveFixture } from "@/lib/store";
-import type { TesterScore } from "@/lib/policy";
+import { decide, type TesterScore } from "@/lib/policy";
 import {
   approveComment,
   handoffComment,
@@ -48,10 +48,35 @@ export async function saveCommentAction(formData: FormData) {
     String(formData.get("place") ?? ""),
     `entered-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
   );
-  if (!read.ok) return { ok: false as const, note: read.note, place: "others" as const };
-  addIncoming(read.fixture);
+  if (!read.ok) return { ok: false as const, note: read.note, place: "others" as const, reply: "" };
+  const decision = decide({
+    accountId: read.fixture.accountId,
+    category: read.fixture.category,
+    signal: read.fixture.signal,
+    text: read.fixture.comment,
+  });
+  if (decision.action === "handoff") {
+    return { ok: false as const, note: decision.reason, place: read.fixture.place ?? "others", reply: "" };
+  }
+  let drafted: { text: string; model: string };
+  try {
+    const result = await askDrafter(read.fixture);
+    if (!result.ok) {
+      return { ok: false as const, note: result.note, place: read.fixture.place ?? "others", reply: "" };
+    }
+    drafted = { text: result.text, model: result.model };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "The model could not be reached.";
+    return { ok: false as const, note: message.slice(0, 300), place: read.fixture.place ?? "others", reply: "" };
+  }
+  addIncoming(read.fixture, drafted);
   refresh(read.fixture.id);
-  return { ok: true as const, note: read.note, place: read.fixture.place ?? "others" };
+  return {
+    ok: true as const,
+    note: "Saved. The reply is in the list below.",
+    place: read.fixture.place ?? "others",
+    reply: drafted.text,
+  };
 }
 
 export async function liveReplyAction(_prev: LiveReplyResult, formData: FormData): Promise<LiveReplyResult> {
