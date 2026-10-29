@@ -202,12 +202,25 @@ describe("pass mark", () => {
         "Are you asking people to start with this recording, or with another track from The Fabled City?",
       place: "others",
     });
-    assert.ok(stated.score >= 7 && stated.score <= 8, `statement scored ${stated.score}`);
-    assert.match(stated.notes[0] ?? "", new RegExp(`${10 - stated.score} points were not given`));
-    assert.match(stated.notes[0] ?? "", /2 points: It answers the post without asking/);
+    assert.equal(stated.score, 8.5);
+    assert.equal(stated.band, "Sound");
+    assert.match(stated.notes[0] ?? "", /1\.5 points were not given/);
+    assert.match(stated.notes.join(" "), /Relevance: 2\.5 of 2\.5/);
+    assert.match(stated.notes.join(" "), /Conversation: 1 of 2/);
+    assert.match(stated.notes.join(" "), /follow-up/);
     assert.ok(repeated.score < stated.score, `repeated ${repeated.score} vs statement ${stated.score}`);
     assert.ok(repeated.score <= 10 && stated.score <= 10);
     assert.match(repeated.notes.join(" "), /already made/);
+    const thanks = rateImpact({
+      accountId: folk.accountId,
+      category: folk.category,
+      signal: folk.signal,
+      comment: folk.comment,
+      draft: "Thanks!",
+      place: "others",
+    });
+    assert.ok(thanks.score < stated.score);
+    assert.match(thanks.notes.join(" "), /bare thanks/);
 
     const spam = fixtures.find((item) => item.id === "out-threads-spam");
     assert.ok(spam);
@@ -240,10 +253,11 @@ describe("pass mark", () => {
         "That playlist is the thing I can actually see, same songs dropping in before you have decided. It makes me want to put one new artist in front of it. Try English Teacher and start with The World's Biggest Paving Slab, talky and bright. The next couple of tracks sit beside it. You will know in a minute if you want the rest.",
       place: "others",
     });
-    assert.ok(direct.score >= 7, `direct recommendation scored ${direct.score}`);
-    assert.equal(direct.band, "Sound");
+    assert.ok(direct.score >= 9, `direct recommendation scored ${direct.score}`);
+    assert.equal(direct.band, "Strong");
     assert.ok(scene.score < direct.score, `scene ${scene.score} vs direct ${direct.score}`);
     assert.match(scene.notes.join(" "), /scene/);
+    assert.match(direct.notes.join(" "), /Relevance|Conversation|Tone|Usefulness|Safety|Clarity|Originality/);
   });
 
   it("rejects a link dropped onto someone else's post", () => {

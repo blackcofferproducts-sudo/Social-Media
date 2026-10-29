@@ -389,141 +389,306 @@ export function rateImpact(input: {
   }
 
   const place = input.place ?? "own";
-  const parts: { label: string; awarded: number; max: number; reason: string }[] = [];
+  const parts = impactParts({
+    draft: input.draft,
+    comment: input.comment,
+    fails: hardFails(input.draft, input.accountId, place, input.comment),
+    retells:
+      describesALoss(input.comment) &&
+      /\b(?:daughter|son|died|death|killed|accident|suicide|funeral|grief)\b/i.test(input.draft),
+  });
+  const raw = parts.reduce((sum, part) => sum + part.awarded, 0);
+  const score = Math.max(0, Math.min(10, Math.round(raw * 2) / 2));
+  const band = score === 0 ? "None" : score < 5 ? "Low" : score < 7 ? "Limited" : score < 9 ? "Sound" : "Strong";
+  const missed = Math.round((10 - score) * 2) / 2;
+  const notes = parts.map(
+    (part) => `${part.label}: ${pointNumber(part.awarded)} of ${pointNumber(part.max)}. ${part.reason}`,
+  );
+  if (missed > 0) {
+    const cuts = parts
+      .filter((part) => part.awarded < part.max)
+      .map((part) => {
+        const gap = Math.round((part.max - part.awarded) * 2) / 2;
+        return `${part.label}, ${pointLabel(gap)}: ${part.reason}`;
+      });
+    notes.unshift(`${pointLabel(missed)} ${missed === 1 ? "was" : "were"} not given. ${cuts.join(" ")}`);
+  }
+  return { score, band, notes };
+}
+
+function pointNumber(value: number) {
+  const rounded = Math.round(value * 2) / 2;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+function pointLabel(value: number) {
+  const text = pointNumber(value);
+  return `${text} ${text === "1" ? "point" : "points"}`;
+}
+
+function bareThanks(draft: string) {
+  return /^(?:thanks|thank you|thx|cheers)[.!\s]*$/i.test(draft.trim());
+}
+
+function wordCount(draft: string) {
+  return draft.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function impactParts(input: { draft: string; comment: string; fails: string[]; retells: boolean }) {
   const shared = sharedWords(input.draft, input.comment);
   const musicAsk = asksForMusic(input.comment);
   const named = musicAsk && namesMusic(input.draft);
   const padded = named && paddedReply(input.draft);
-  if (shared >= 2) {
-    parts.push({
-      label: "Specific",
-      awarded: 3,
-      max: 3,
-      reason: "It uses details from their post, so they can see it was written for them.",
-    });
-  } else if (shared === 1) {
-    parts.push({
-      label: "Specific",
-      awarded: 2,
-      max: 3,
-      reason: "It picks up one detail from their post, so 1 point stays off.",
-    });
-  } else if (named && !padded) {
-    parts.push({
-      label: "Specific",
-      awarded: 0,
-      max: 3,
-      reason: "It does not repeat their words. The names are the answer, so 3 points for their details stay off.",
-    });
-  } else {
-    parts.push({
-      label: "Specific",
-      awarded: 0,
-      max: 3,
-      reason: "It does not use a detail from their post, so 3 points stay off.",
-    });
-  }
+  const repeated = questionRepeats(input.draft, input.comment);
+  const thanks = bareThanks(input.draft);
+  const asked = /\?/.test(input.comment) || /\b(?:how|what|where|when|which|why)\b/i.test(input.comment);
+  const words = wordCount(input.draft);
+  const toneFail = input.fails.find((fail) => /voice|British English|Stock AI/i.test(fail));
+  const safetyFail = input.fails.find((fail) =>
+    /Rationality|Blocklist|Goal:|does not carry a link|waitlist link is only/i.test(fail),
+  );
+  const parts: { label: string; awarded: number; max: number; reason: string }[] = [];
 
-  const fails = hardFails(input.draft, input.accountId, place, input.comment);
-  const goalFail = fails.find((fail) => /Goal:|does not carry a link|voice|waitlist link is only/i.test(fail));
-  if (goalFail) {
-    parts.push({ label: "Goal", awarded: 0, max: 2, reason: `${goalFail} 2 points stay off.` });
-  } else {
+  if (repeated) {
     parts.push({
-      label: "Goal",
-      awarded: 2,
-      max: 2,
-      reason: "It fits the goal for this account.",
+      label: "Relevance",
+      awarded: 0,
+      max: 2.5,
+      reason: "It asks for a choice they already made, so it does not answer what they said.",
     });
-  }
-
-  if (questionRepeats(input.draft, input.comment)) {
+  } else if (thanks) {
     parts.push({
-      label: "Answer",
-      awarded: -2,
-      max: 3,
-      reason: "The question asks for a choice the post already made, so a reply is unlikely. 2 points are taken off.",
+      label: "Relevance",
+      awarded: 0,
+      max: 2.5,
+      reason: "A bare thanks does not answer what they said.",
     });
-  } else if (named && !padded) {
+  } else if (musicAsk && named) {
     parts.push({
-      label: "Answer",
-      awarded: 3,
-      max: 3,
-      reason: "They asked for music. The reply names it and stops.",
-    });
-  } else if (musicAsk && padded) {
-    parts.push({
-      label: "Answer",
-      awarded: -2,
-      max: 3,
-      reason: "They asked for music. The reply names it, then adds a scene they did not ask for. 2 points are taken off.",
+      label: "Relevance",
+      awarded: 2.5,
+      max: 2.5,
+      reason: "It answers the music they asked for.",
     });
   } else if (musicAsk) {
     parts.push({
-      label: "Answer",
+      label: "Relevance",
       awarded: 0,
-      max: 3,
-      reason: "They asked for music, and the reply does not name any, so 3 points stay off.",
+      max: 2.5,
+      reason: "They asked for music, and the reply does not name any.",
     });
-  } else if (input.draft.includes("?")) {
+  } else if (shared >= 2) {
     parts.push({
-      label: "Answer",
-      awarded: 3,
-      max: 3,
-      reason: "It asks something the post left open, so a reply is more likely.",
+      label: "Relevance",
+      awarded: 2.5,
+      max: 2.5,
+      reason: "It stays with what they said.",
     });
-  } else if (shared >= 1) {
+  } else if (shared === 1) {
     parts.push({
-      label: "Answer",
-      awarded: 1,
-      max: 3,
-      reason: "It answers the post without asking them to explain it again. 2 points stay off because it does not ask something the post left open.",
+      label: "Relevance",
+      awarded: 1.5,
+      max: 2.5,
+      reason: "It picks up one detail from what they said.",
+    });
+  } else if (asked && words >= 6) {
+    parts.push({
+      label: "Relevance",
+      awarded: 2,
+      max: 2.5,
+      reason: "It answers their question without repeating their words.",
     });
   } else {
     parts.push({
-      label: "Answer",
+      label: "Relevance",
       awarded: 0,
-      max: 3,
-      reason: "There is little reason for them to answer, so 3 points stay off.",
+      max: 2.5,
+      reason: "It does not answer what they said.",
     });
   }
 
-  const retells =
-    describesALoss(input.comment) &&
-    /\b(?:daughter|son|died|death|killed|accident|suicide|funeral|grief)\b/i.test(input.draft);
-  const unsafe = fails.find((fail) => /Rationality|Blocklist|Stock AI|British English/i.test(fail));
-  if (retells) {
+  if (repeated) {
     parts.push({
-      label: "Trust",
+      label: "Conversation",
       awarded: 0,
       max: 2,
-      reason: "It retells the loss. That costs trust, so 2 points stay off.",
+      reason: "It pushes them to choose again.",
     });
-  } else if (unsafe) {
-    parts.push({ label: "Trust", awarded: 0, max: 2, reason: `${unsafe} 2 points stay off.` });
-  } else {
+  } else if (thanks) {
     parts.push({
-      label: "Trust",
+      label: "Conversation",
+      awarded: 0,
+      max: 2,
+      reason: "It does not leave a way back into the conversation.",
+    });
+  } else if (input.draft.includes("?") && !repeated) {
+    parts.push({
+      label: "Conversation",
       awarded: 2,
       max: 2,
-      reason: "It only says what their post supports. This is not a count of replies or followers.",
+      reason: "It leaves a question the post left open, without forcing one.",
+    });
+  } else if (named && !padded) {
+    parts.push({
+      label: "Conversation",
+      awarded: 1.5,
+      max: 2,
+      reason: "The recommendation is the interaction. It does not force a question.",
+    });
+  } else if (padded) {
+    parts.push({
+      label: "Conversation",
+      awarded: 0.5,
+      max: 2,
+      reason: "The extra scene pushes the conversation past what they asked.",
+    });
+  } else if (shared >= 1 || (asked && words >= 6)) {
+    parts.push({
+      label: "Conversation",
+      awarded: 1,
+      max: 2,
+      reason: "It answers them. It does not invite a follow-up, and it does not force one.",
+    });
+  } else {
+    parts.push({
+      label: "Conversation",
+      awarded: 0,
+      max: 2,
+      reason: "It does not invite a follow-up.",
     });
   }
 
-  const raw = parts.reduce((sum, part) => sum + part.awarded, 0);
-  const clamped = Math.max(0, Math.min(10, raw));
-  const band = clamped === 0 ? "None" : clamped <= 4 ? "Low" : clamped <= 6 ? "Limited" : clamped <= 8 ? "Sound" : "Strong";
-  const missed = 10 - clamped;
-  const notes = parts.map((part) => `${part.label}: ${part.awarded} of ${part.max}. ${part.reason}`);
-  if (missed > 0) {
-    const cuts = parts
-      .filter((part) => part.awarded < part.max)
-      .map((part) => `${part.label}, ${part.max - part.awarded} ${part.max - part.awarded === 1 ? "point" : "points"}: ${part.reason}`);
-    notes.unshift(
-      `${missed} ${missed === 1 ? "point was" : "points were"} not given. ${cuts.join(" ")}`,
-    );
+  if (toneFail) {
+    parts.push({ label: "Tone", awarded: 0, max: 1.5, reason: toneFail });
+  } else {
+    parts.push({
+      label: "Tone",
+      awarded: 1.5,
+      max: 1.5,
+      reason: "It stays friendly and in this account's voice.",
+    });
   }
-  return { score: clamped, band, notes };
+
+  if (thanks || repeated || (musicAsk && !named)) {
+    parts.push({
+      label: "Usefulness",
+      awarded: 0,
+      max: 1.5,
+      reason: thanks
+        ? "A bare thanks adds nothing they can use."
+        : repeated
+          ? "It does not add an answer."
+          : "They asked for music, and the reply does not name any.",
+    });
+  } else if (named && !padded) {
+    parts.push({
+      label: "Usefulness",
+      awarded: 1.5,
+      max: 1.5,
+      reason: "It names the music they asked for.",
+    });
+  } else if (padded) {
+    parts.push({
+      label: "Usefulness",
+      awarded: 0.5,
+      max: 1.5,
+      reason: "It names the music, then adds a scene they did not ask for.",
+    });
+  } else if (asked && words >= 6) {
+    parts.push({
+      label: "Usefulness",
+      awarded: 1.5,
+      max: 1.5,
+      reason: "It answers the question they asked.",
+    });
+  } else if (shared >= 2) {
+    parts.push({
+      label: "Usefulness",
+      awarded: 1,
+      max: 1.5,
+      reason: "It stays with what they said, and does not add a new fact.",
+    });
+  } else if (shared === 1) {
+    parts.push({
+      label: "Usefulness",
+      awarded: 0.5,
+      max: 1.5,
+      reason: "It picks up one detail, and adds little they can use.",
+    });
+  } else {
+    parts.push({
+      label: "Usefulness",
+      awarded: 0,
+      max: 1.5,
+      reason: "It does not add something they can use.",
+    });
+  }
+
+  if (input.retells) {
+    parts.push({
+      label: "Safety",
+      awarded: 0,
+      max: 1,
+      reason: "It retells the loss.",
+    });
+  } else if (safetyFail) {
+    parts.push({ label: "Safety", awarded: 0, max: 1, reason: safetyFail });
+  } else if (/\b[\w.+-]+@[\w.-]+\.[a-z]{2,}\b/i.test(input.draft)) {
+    parts.push({
+      label: "Safety",
+      awarded: 0,
+      max: 1,
+      reason: "It includes an email address.",
+    });
+  } else {
+    parts.push({
+      label: "Safety",
+      awarded: 1,
+      max: 1,
+      reason: "It avoids a claim, a private detail, and a reply the post does not support.",
+    });
+  }
+
+  if (padded) {
+    parts.push({
+      label: "Clarity",
+      awarded: 0,
+      max: 1,
+      reason: "It is longer than this comment needs.",
+    });
+  } else if (words > 80 && !asked) {
+    parts.push({
+      label: "Clarity",
+      awarded: 0.5,
+      max: 1,
+      reason: "It is longer than a comment needs when they did not ask for an explanation.",
+    });
+  } else {
+    parts.push({
+      label: "Clarity",
+      awarded: 1,
+      max: 1,
+      reason: "It is brief enough for a comment.",
+    });
+  }
+
+  if (input.fails.some((fail) => /Stock AI/i.test(fail)) || thanks) {
+    parts.push({
+      label: "Originality",
+      awarded: 0,
+      max: 0.5,
+      reason: thanks ? "A bare thanks is the same reply every time." : "It uses a stock phrase.",
+    });
+  } else {
+    parts.push({
+      label: "Originality",
+      awarded: 0.5,
+      max: 0.5,
+      reason: "It does not read as a copied line.",
+    });
+  }
+
+  return parts;
 }
 
 export function scoreTester(score: TesterScore) {
