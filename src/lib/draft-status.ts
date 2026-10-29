@@ -1,5 +1,5 @@
 import type { Fixture } from "./fixture";
-import type { CommentRecord } from "./store";
+import type { CommentRecord } from "./desk";
 
 export const WRITING_NOTE = "This comment came in. Grok is writing the reply.";
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Newsreader, Source_Sans_3 } from "next/font/google";
+import { DeskProvider } from "@/components/desk-provider";
 import { DeskShell } from "@/components/desk-shell";
+import { getDesk } from "@/lib/store";
 import "./globals.css";
 
 const sans = Source_Sans_3({
@@ -27,10 +29,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initial = getDesk();
   return (
     <html lang="en-GB">
       <body className={`${sans.variable} ${serif.variable} antialiased`}>
-        <DeskShell>{children}</DeskShell>
+        <DeskProvider initial={initial}>
+          <DeskShell>{children}</DeskShell>
+        </DeskProvider>
       </body>
     </html>
   );

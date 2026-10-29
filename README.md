@@ -38,7 +38,7 @@ Create the token in a Meta app that has the Threads use case. Grant `threads_bas
 
 `npm test` checks the handoff rules, the gold replies, the 5-out-of-6 pass mark, Pat's approval of the exact text, and the daily caps.
 
-Scores and names are stored in `data/desk-state.json`. That file is local and is not committed. Deleting it clears scores and approvals. The queue stays empty until a comment arrives.
+On this machine, scores and names are also written to `data/desk-state.json`. That file is local and is not committed. Deleting it clears the file copy. Comments you save in the browser stay in that browser until you clear site data.
 
 ## What you can do
 
@@ -68,6 +68,6 @@ After the project exists, add these environment variables for Production and Pre
 
 A reply usually takes 15 to 40 seconds. The pages and the live-reply route allow 60 seconds. A plan that stops functions at 10 seconds will cut the reply off.
 
-Scores and approvals are written to `data/desk-state.json` when that folder can be written. On Vercel the app disk is read-only, so the desk uses a file in the function's temporary folder instead. That copy belongs to one running instance and disappears when the function goes idle. It is enough to rehearse the gate. A database is the next step if an approval has to survive a restart.
+Saved comments, replies, scores, and tester names stay in the browser (`localStorage`). A refresh on the deployed site keeps them. They are not shared with another browser or device. The server file is only a local copy when the disk can be written. Vercel does not keep that file.
 
 `npm start` still runs the built desk locally on port 43123. No social API credentials are required. Connect each platform with its own app authorisation rather than a password.

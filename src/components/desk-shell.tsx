@@ -1,10 +1,10 @@
 import { DeskNav } from "@/components/desk-nav";
+import { NamesNotice } from "@/components/names-notice";
 import { namesAreSet } from "@/lib/policy";
 import { getDesk } from "@/lib/store";
 
 export function DeskShell({ children }: { children: React.ReactNode }) {
-  const desk = getDesk();
-  const named = namesAreSet(desk.testerNames);
+  const named = namesAreSet(getDesk().testerNames);
   return (
     <div className="min-h-screen">
       <header className="border-b border-border">
@@ -29,16 +29,7 @@ export function DeskShell({ children }: { children: React.ReactNode }) {
           A comment comes in, Grok 4.7 writes the reply, then it waits for a score and Pat&apos;s approval.
         </p>
       </div>
-      {!named ? (
-        <div className="border-b border-border bg-muted/60">
-          <p className="mx-auto max-w-6xl px-4 py-2 text-sm sm:px-6">
-            Tester names are not written down, so nothing can reach Pat.{" "}
-            <a className="underline underline-offset-4" href="/limits">
-              Write the two names on Limits.
-            </a>
-          </p>
-        </div>
-      ) : null}
+      <NamesNotice initialNamed={named} />
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">{children}</main>
     </div>
   );

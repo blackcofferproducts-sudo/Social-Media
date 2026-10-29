@@ -1,11 +1,5 @@
-import { saveNamesAction } from "@/app/actions";
-import { Button } from "@/components/ui/button";
+import { LimitsDesk } from "@/components/limits-desk";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { accountIds, accounts } from "@/lib/accounts";
-import { namesAreSet } from "@/lib/policy";
-import { capSummary, getDesk } from "@/lib/store";
 
 const blanks = [
   "Momentive hive is not defined. It has no role until someone writes what it is, who is in it, and what it owns.",
@@ -18,10 +12,6 @@ const blanks = [
 ];
 
 export default function LimitsPage() {
-  const desk = getDesk();
-  const named = namesAreSet(desk.testerNames);
-  const caps = capSummary(desk);
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
@@ -33,55 +23,7 @@ export default function LimitsPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Tester names</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form action={saveNamesAction} className="grid gap-3 sm:grid-cols-2">
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="testerA">Tester A</Label>
-              <Input id="testerA" name="testerA" defaultValue={desk.testerNames.a} autoComplete="name" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="testerB">Tester B</Label>
-              <Input id="testerB" name="testerB" defaultValue={desk.testerNames.b} autoComplete="name" />
-            </div>
-            <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
-              <Button type="submit">Save names</Button>
-              <p className="text-sm text-muted-foreground">
-                {named
-                  ? "Both names are written down. They filter replies. They do not approve them."
-                  : "Until two different names are saved, Pat's approval stays shut."}
-              </p>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-      <div className="flex flex-col gap-3">
-        {[...accountIds]
-          .sort((a, b) => (accounts[a].phase === accounts[b].phase ? 0 : accounts[a].phase === "now" ? -1 : 1))
-          .map((id) => {
-          const account = accounts[id];
-          const usage = caps.find((row) => row.account.id === id);
-          return (
-            <Card key={id}>
-              <CardHeader>
-                <CardTitle>
-                  {account.phase === "later" ? "Later · " : ""}
-                  {account.label} · {usage?.sent ?? 0} / {account.dailyCap} today
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2 text-sm leading-6">
-                <p>{account.api}</p>
-                <p className="text-muted-foreground">{account.ceiling}</p>
-                <p className="text-muted-foreground">{account.access}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <LimitsDesk />
 
       <Card>
         <CardHeader>

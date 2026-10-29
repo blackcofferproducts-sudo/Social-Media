@@ -1,6 +1,4 @@
-import { notFound } from "next/navigation";
-import { ArrivalDrafts } from "@/components/arrival-drafts";
-import { ReviewDesk } from "@/components/review-desk";
+import { CommentScreen } from "@/components/comment-screen";
 import { needsModelDraft, WRITING_NOTE } from "@/lib/draft-status";
 import { getDesk, markWriting, resolveFixture, sentToday } from "@/lib/store";
 
@@ -13,24 +11,20 @@ export default async function CommentPage({
 }) {
   const { id } = await params;
   const desk = getDesk();
-  const fixture = resolveFixture(desk, id);
-  if (!fixture) notFound();
-  let record = desk.comments[id];
-  if (!record) notFound();
-  if (needsModelDraft(fixture, record)) {
+  const fixture = resolveFixture(desk, id) ?? null;
+  let record = fixture ? (desk.comments[id] ?? null) : null;
+  if (fixture && record && needsModelDraft(fixture, record)) {
     markWriting(id, WRITING_NOTE);
     record = { ...record, grokNote: WRITING_NOTE };
   }
 
   return (
-    <>
-      <ArrivalDrafts focusId={id} once />
-      <ReviewDesk
-        fixture={fixture}
-        record={record}
-        testerNames={desk.testerNames}
-        sentToday={sentToday(desk, fixture.accountId)}
-      />
-    </>
+    <CommentScreen
+      id={id}
+      fallbackFixture={fixture}
+      fallbackRecord={record}
+      fallbackNames={desk.testerNames}
+      fallbackSent={fixture ? sentToday(desk, fixture.accountId) : 0}
+    />
   );
 }

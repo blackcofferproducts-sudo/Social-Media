@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import {
+  approveOnDesk,
+  handoffOnDesk,
+  manualOnDesk,
+  publishOnDesk,
+  saveDraftOnDesk,
+  saveScoreOnDesk,
+} from "@/app/actions";
+import { useDesk } from "@/components/desk-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  approveAction,
-  handoffAction,
-  manualAction,
-  publishAction,
-  saveDraftAction,
-  saveScoreAction,
-} from "@/app/actions";
 import { modelPhase } from "@/lib/draft-status";
 import { accounts } from "@/lib/accounts";
 import { placeOf, type Fixture } from "@/lib/fixture";
@@ -27,7 +28,7 @@ import {
   SCORE_MAX,
   type TesterScore,
 } from "@/lib/policy";
-import type { CommentRecord } from "@/lib/store";
+import { sentToday as sentOnDesk, type CommentRecord } from "@/lib/desk";
 
 const marks = [
   { name: "communication", label: "Communication. 2 sounds like a person. 0 sounds like a review." },
@@ -40,19 +41,38 @@ const marks = [
 
 export function ReviewDesk({
   fixture,
-  record,
-  testerNames,
-  sentToday,
+  record: recordProp,
+  testerNames: namesProp,
+  sentToday: sentProp,
 }: {
   fixture: Fixture;
   record: CommentRecord;
   testerNames: { a: string; b: string };
   sentToday: number;
 }) {
+  const { desk, deskRef, commit, ready } = useDesk();
+  const record = (ready && desk.comments[fixture.id]) || recordProp;
+  const testerNames = ready ? desk.testerNames : namesProp;
+  const sentToday = ready ? sentOnDesk(desk, fixture.accountId) : sentProp;
   const [draft, setDraft] = useState(record.draft);
+  const [note, setNote] = useState("");
   useEffect(() => {
     setDraft(record.draft);
   }, [record.draft, record.source]);
+
+  async function submit(
+    event: FormEvent<HTMLFormElement>,
+    action: (snapshot: typeof desk, formData: FormData) => Promise<typeof desk>,
+  ) {
+    event.preventDefault();
+    setNote("");
+    try {
+      const next = await action(deskRef.current, new FormData(event.currentTarget));
+      commit(next);
+    } catch {
+      setNote("That change was not saved. Try it again.");
+    }
+  }
   const account = accounts[fixture.accountId];
   const onOthers = placeOf(fixture) === "others";
   const brief = commentBrief({
@@ -238,7 +258,7 @@ export function ReviewDesk({
                 ))}
               </ul>
             ) : null}
-            <form action={saveDraftAction} className="flex flex-col gap-3">
+            <form onSubmit={(event) => submit(event, saveDraftOnDesk)} className="flex flex-col gap-3">
               <input type="hidden" name="commentId" value={fixture.id} />
               <Label htmlFor="draft">{onOthers ? "Comment" : "Draft"}</Label>
               <Textarea
@@ -261,7 +281,8 @@ export function ReviewDesk({
                 </Button>
               </div>
             </form>
-            <form action={handoffAction}>
+            {note ? <p className="text-sm text-destructive">{note}</p> : null}
+            <form onSubmit={(event) => submit(event, handoffOnDesk)}>
               <input type="hidden" name="commentId" value={fixture.id} />
               <Button type="submit" variant="secondary" disabled={closed}>
                 Hand to a person
@@ -278,6 +299,7 @@ export function ReviewDesk({
             score={record.testerA}
             result={dirty ? null : gate.testerA}
             disabled={closed || dirty || hold || gate.decision.action === "handoff"}
+            onSubmit={(event) => submit(event, saveScoreOnDesk)}
           />
           <ScoreCard
             seat="b"
@@ -286,6 +308,7 @@ export function ReviewDesk({
             score={record.testerB}
             result={dirty ? null : gate.testerB}
             disabled={closed || dirty || hold || gate.decision.action === "handoff"}
+            onSubmit={(event) => submit(event, saveScoreOnDesk)}
           />
         </div>
 
@@ -304,19 +327,19 @@ export function ReviewDesk({
               {account.short}: {sentToday} of {account.dailyCap} used today, Asia/Kolkata.
             </p>
             <div className="flex flex-wrap gap-2">
-              <form action={approveAction}>
+              <form onSubmit={(event) => submit(event, approveOnDesk)}>
                 <input type="hidden" name="commentId" value={fixture.id} />
                 <Button type="submit" disabled={closed || dirty || !gate.readyForPat || gate.approved}>
                   Pat approves this text
                 </Button>
               </form>
-              <form action={publishAction}>
+              <form onSubmit={(event) => submit(event, publishOnDesk)}>
                 <input type="hidden" name="commentId" value={fixture.id} />
                 <Button type="submit" variant="outline" disabled={!gate.canMockPublish}>
                   {onOthers ? "Post the comment on the mock account" : `Publish to the mock ${account.platform} account`}
                 </Button>
               </form>
-              <form action={manualAction}>
+              <form onSubmit={(event) => submit(event, manualOnDesk)}>
                 <input type="hidden" name="commentId" value={fixture.id} />
                 <Button type="submit" variant="outline" disabled={!gate.canRecordManual}>
                   Record that Pat posted it
@@ -337,6 +360,7 @@ function ScoreCard({
   score,
   result,
   disabled,
+  onSubmit,
 }: {
   seat: "a" | "b";
   title: string;
@@ -344,6 +368,7 @@ function ScoreCard({
   score: TesterScore | null;
   result: { points: number; passed: boolean } | null;
   disabled: boolean;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   return (
     <Card>
@@ -351,7 +376,7 @@ function ScoreCard({
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={saveScoreAction} className="flex flex-col gap-3">
+        <form onSubmit={onSubmit} className="flex flex-col gap-3">
           <input type="hidden" name="commentId" value={commentId} />
           <input type="hidden" name="seat" value={seat} />
           {marks.map((mark) => (

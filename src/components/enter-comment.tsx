@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { saveCommentAction } from "@/app/actions";
+import { useDesk } from "@/components/desk-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export function EnterComment({ place }: { place: "others" | "own" }) {
   const router = useRouter();
+  const { deskRef, commit } = useDesk();
   const [pending, setPending] = useState(false);
   const [note, setNote] = useState("");
 
@@ -19,9 +21,10 @@ export function EnterComment({ place }: { place: "others" | "own" }) {
     setPending(true);
     setNote("");
     try {
-      const result = await saveCommentAction(new FormData(form));
+      const result = await saveCommentAction(deskRef.current, new FormData(form));
       setNote(result.note);
       if (!result.ok) return;
+      commit(result.desk);
       form.reset();
       if (result.place === "own") router.push("/?view=replies");
       else router.push("/");
