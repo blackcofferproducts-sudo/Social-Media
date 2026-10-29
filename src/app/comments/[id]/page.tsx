@@ -2,8 +2,7 @@ import { notFound } from "next/navigation";
 import { ArrivalDrafts } from "@/components/arrival-drafts";
 import { ReviewDesk } from "@/components/review-desk";
 import { needsModelDraft, WRITING_NOTE } from "@/lib/draft-status";
-import { fixtureById } from "@/lib/fixtures";
-import { getDesk, markWriting, sentToday } from "@/lib/store";
+import { getDesk, markWriting, resolveFixture, sentToday } from "@/lib/store";
 
 export const maxDuration = 60;
 
@@ -13,9 +12,9 @@ export default async function CommentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const fixture = fixtureById(id);
-  if (!fixture) notFound();
   const desk = getDesk();
+  const fixture = resolveFixture(desk, id);
+  if (!fixture) notFound();
   let record = desk.comments[id];
   if (!record) notFound();
   if (needsModelDraft(fixture, record)) {

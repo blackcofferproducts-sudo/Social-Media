@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { accounts, type AccountId } from "./accounts";
 import { fixtures, placeOf } from "./fixtures";
+import type { Fixture } from "./fixture";
 import { evaluateGate, type TesterScore } from "./policy";
 
 export type Outcome = "open" | "handed-off" | "mock-published" | "posted-by-pat";
@@ -35,6 +36,7 @@ export type DeskState = {
   testerNames: { a: string; b: string };
   comments: Record<string, CommentRecord>;
   sends: SendRecord[];
+  incoming: Fixture[];
 };
 
 const bundledPath = path.join(process.cwd(), "data", "desk-state.json");
@@ -99,6 +101,7 @@ function seed(): DeskState {
       fixtures.map((fixture) => [fixture.id, blankComment(fixture.suggestedDraft)]),
     ),
     sends: [],
+    incoming: [],
   };
 }
 
@@ -123,6 +126,7 @@ export function getDesk(): DeskState {
       revision: saved.revision ?? 0,
       testerNames: saved.testerNames ?? { a: "", b: "" },
       sends: Array.isArray(saved.sends) ? saved.sends : [],
+      incoming: Array.isArray(saved.incoming) ? saved.incoming : [],
       comments: Object.fromEntries(
         Object.entries({ ...base.comments, ...saved.comments }).map(([id, record]) => [
           id,
@@ -143,12 +147,26 @@ function writeDesk(state: DeskState) {
   return next;
 }
 
+export function resolveFixture(state: DeskState, id: string) {
+  return state.incoming.find((item) => item.id === id) ?? fixtures.find((item) => item.id === id);
+}
+
+export function addIncoming(fixture: Fixture) {
+  const state = getDesk();
+  if (state.incoming.some((item) => item.id === fixture.id) || state.comments[fixture.id]) {
+    return state;
+  }
+  state.incoming.push(fixture);
+  state.comments[fixture.id] = blankComment("");
+  return writeDesk(state);
+}
+
 export function sentToday(state: DeskState, accountId: AccountId, day = kolkataDay()) {
   return state.sends.filter((send) => send.accountId === accountId && send.day === day).length;
 }
 
 export function gateFor(state: DeskState, commentId: string, day = kolkataDay()) {
-  const fixture = fixtures.find((item) => item.id === commentId);
+  const fixture = resolveFixture(state, commentId);
   const record = state.comments[commentId];
   if (!fixture || !record) return null;
   return evaluateGate({
@@ -251,7 +269,7 @@ export function handoffComment(commentId: string) {
 
 export function publishMock(commentId: string) {
   return update(commentId, (state, record) => {
-    const fixture = fixtures.find((item) => item.id === commentId);
+    const fixture = resolveFixture(state, commentId);
     const gate = gateFor(state, commentId);
     if (!fixture || !gate?.canMockPublish) return;
     record.outcome = "mock-published";
@@ -266,7 +284,7 @@ export function publishMock(commentId: string) {
 
 export function recordManualPost(commentId: string) {
   return update(commentId, (state, record) => {
-    const fixture = fixtures.find((item) => item.id === commentId);
+    const fixture = resolveFixture(state, commentId);
     const gate = gateFor(state, commentId);
     if (!fixture || !gate?.canRecordManual) return;
     record.outcome = "posted-by-pat";

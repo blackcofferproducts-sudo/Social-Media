@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 43123",
     "lint": "eslint",
-    "test": "tsx --test src/lib/policy.test.ts src/lib/grok.test.ts"
+    "test": "tsx --test src/lib/policy.test.ts src/lib/grok.test.ts src/lib/music-feed.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

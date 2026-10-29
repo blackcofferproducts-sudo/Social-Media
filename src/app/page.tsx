@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { ArrivalDrafts } from "@/components/arrival-drafts";
-import { LiveReply } from "@/components/live-reply";
+import { MusicIntake } from "@/components/music-intake";
 import { Badge } from "@/components/ui/badge";
 import { accountIds, accounts } from "@/lib/accounts";
 import { modelPhase } from "@/lib/draft-status";
-import { drafterReady } from "@/lib/grok";
 import { fixtures, placeOf } from "@/lib/fixtures";
 import { categoryLabel, signalLabel } from "@/lib/labels";
 import { rateImpact } from "@/lib/policy";
@@ -27,6 +26,11 @@ export default async function QueuePage({
     if (place !== "others") return false;
     return !selected || fixture.accountId === selected;
   });
+  const musicRows =
+    view === "others"
+      ? desk.incoming.filter((fixture) => !selected || fixture.accountId === selected)
+      : [];
+  const list = [...musicRows, ...rows];
 
   return (
     <div className="flex flex-col gap-6">
@@ -47,8 +51,8 @@ export default async function QueuePage({
             copy and clear when it goes idle.
           </p>
         ) : null}
+        {view === "others" ? <MusicIntake /> : null}
       </div>
-      <LiveReply connected={drafterReady()} />
       <div className="flex flex-wrap gap-2">
         <Filter href="/" current={view === "others"} label="On other people's posts" />
         <Filter href="/?view=replies" current={view === "replies"} label="Replies on our Threads" />
@@ -68,10 +72,11 @@ export default async function QueuePage({
       ) : null}
       <ArrivalDrafts scope={view === "replies" ? "replies" : "others"} />
       <ul className="flex flex-col gap-3">
-        {rows.map((fixture) => {
+        {list.map((fixture) => {
           const record = desk.comments[fixture.id];
           const phase = record ? modelPhase(fixture, record) : "queued";
           const gate = gateFor(desk, fixture.id);
+          const fetched = desk.incoming.some((item) => item.id === fixture.id);
           const impact = rateImpact({
             accountId: fixture.accountId,
             category: fixture.category,
@@ -89,6 +94,7 @@ export default async function QueuePage({
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">{accounts[fixture.accountId].short}</Badge>
+                    {fetched ? <Badge variant="outline">Fetched · music</Badge> : null}
                     <Badge variant="outline">{signalLabel[fixture.signal]}</Badge>
                     {fixture.training ? (
                       <Badge variant="outline">

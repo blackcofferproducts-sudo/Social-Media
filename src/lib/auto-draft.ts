@@ -2,12 +2,12 @@ import { needsModelDraft, WRITING_NOTE } from "./draft-status";
 import { fixtures } from "./fixtures";
 import { askDrafter } from "./grok";
 import { placeOf } from "./fixture";
-import { getDesk, markWriting, saveGrokDraft, saveGrokNote } from "./store";
+import { getDesk, markWriting, resolveFixture, saveGrokDraft, saveGrokNote } from "./store";
 
 const inflight = new Set<string>();
 
 function inScope(id: string, scope?: "others" | "replies") {
-  const fixture = fixtures.find((item) => item.id === id);
+  const fixture = resolveFixture(getDesk(), id);
   if (!fixture) return false;
   if (!scope) return true;
   const place = placeOf(fixture);
@@ -18,7 +18,7 @@ function inScope(id: string, scope?: "others" | "replies") {
 function nextId(focusId?: string, scope?: "others" | "replies") {
   const desk = getDesk();
   if (focusId) {
-    const focus = fixtures.find((fixture) => fixture.id === focusId);
+    const focus = resolveFixture(desk, focusId);
     if (focus && needsModelDraft(focus, desk.comments[focus.id])) return focus.id;
     return undefined;
   }
@@ -34,7 +34,7 @@ export async function draftNext(
   if (inflight.size > 0) return "busy";
   const id = nextId(focusId, scope);
   if (!id) return "done";
-  const fixture = fixtures.find((item) => item.id === id);
+  const fixture = resolveFixture(getDesk(), id);
   if (!fixture) return "done";
   inflight.add(id);
   markWriting(id, WRITING_NOTE);

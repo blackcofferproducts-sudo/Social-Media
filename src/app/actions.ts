@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { needsModelDraft } from "@/lib/draft-status";
 import { draftNext } from "@/lib/auto-draft";
 import { askDrafter } from "@/lib/grok";
 import { askLive, type LiveReplyResult } from "@/lib/live-reply";
-import { fixtureById } from "@/lib/fixtures";
+import { nextMusicComment } from "@/lib/music-feed";
+import { addIncoming, getDesk, resolveFixture } from "@/lib/store";
 import type { TesterScore } from "@/lib/policy";
 import {
   approveComment,
@@ -48,6 +50,22 @@ export async function liveReplyAction(_prev: LiveReplyResult, formData: FormData
   );
 }
 
+export async function pullMusicAction(): Promise<"done" | "fetched" | "worked" | "busy"> {
+  const desk = getDesk();
+  const waiting = desk.incoming.find((item) => needsModelDraft(item, desk.comments[item.id]));
+  if (waiting) {
+    const status = await draftNext(waiting.id);
+    if (status === "worked") refresh(waiting.id);
+    return status === "done" ? "fetched" : status;
+  }
+  const seen = desk.incoming.map((item) => item.id);
+  const next = nextMusicComment(seen);
+  if (!next) return "done";
+  addIncoming(next);
+  refresh();
+  return "fetched";
+}
+
 export async function draftNextAction(focusId?: string, scope?: "others" | "replies") {
   const status = await draftNext(focusId, scope);
   if (status === "worked") refresh(focusId);
@@ -56,7 +74,7 @@ export async function draftNextAction(focusId?: string, scope?: "others" | "repl
 
 export async function draftWithGrokAction(formData: FormData) {
   const commentId = String(formData.get("commentId") ?? "");
-  const fixture = fixtureById(commentId);
+  const fixture = resolveFixture(getDesk(), commentId);
   if (!fixture) return;
   try {
     const result = await askDrafter(fixture);
