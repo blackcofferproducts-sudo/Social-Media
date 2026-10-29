@@ -110,10 +110,10 @@ export function grokPrompt(fixture: Fixture, speaker = "Grok 4.7") {
   const brief = commentBrief({ accountId: fixture.accountId, text: fixture.comment, place });
   const loss = describesALoss(fixture.comment) && place === "others";
   const system = [
-    `You are ${speaker} writing a short public comment.`,
+    `You are ${speaker} writing a public comment.`,
     "Sound like a person who typed it on their phone. Stay with one detail they actually said.",
-    "British English. Spoken. Contractions are fine. One or two sentences. Stop when the point is made. Do not write a paragraph, a scene, or a list.",
-    "If they ask for a song, an artist, or a playlist, name two and stop. Do not describe the tracks, the room, or how they feel.",
+    "British English. Spoken. Contractions are fine. Make it as long as the reply needs, and no longer. A short answer is enough when that answers them. Explain when the question needs it. Do not pad the reply to fill a sentence count, and do not cut a real answer short.",
+    "If they asked for music, give the recommendation and stop. Do not add a scene unless they asked how it sounds.",
     "Be specific. Do not summarise their whole post. Do not grade the song. Do not restate their story in different words. Do not open with Didn't know, Love this, So powerful, or That's the bit.",
     "If they named a song and also told a story about a death or an accident, the comment is about the song title only. Do not mention the loss, the family, or a famous person they already named.",
     "A question is only right when they left something open. Do not ask them to repeat a choice they already made.",
@@ -147,11 +147,7 @@ export function grokPrompt(fixture: Fixture, speaker = "Grok 4.7") {
       "Known: there is an app, and they join in the app. This page is the post, not the sign-up. You have no link to give.",
     );
   }
-  if (asksForMusic(`${fixture.post}\n${fixture.comment}`)) {
-    lines.push("They asked for music. Name two songs or artists and stop. Do not describe them.");
-  } else {
-    lines.push("Write one or two sentences. Stop when the point is made.");
-  }
+  lines.push("Use only as many sentences as this reply needs.");
   return { system, user: lines.join("\n") };
 }
 
@@ -194,11 +190,6 @@ export function replyText(body: unknown) {
   return "";
 }
 
-export function asksForMusic(text: string) {
-  return /\b(?:recommend(?:ation|s)?|suggest(?:ion|s)?)\b/i.test(text) &&
-    /\b(?:song|songs|music|playlist|artist|artists|album|albums|track|tracks)\b/i.test(text);
-}
-
 export function rejectReply(draft: string, fixture: Fixture) {
   const robotic = roboticPhrase(draft);
   if (robotic) return `Stock phrasing: ${robotic}.`;
@@ -206,11 +197,6 @@ export function rejectReply(draft: string, fixture: Fixture) {
   if (fails.length > 0) return fails[0];
   if (/https?:\/\/|waitlist\.cityjam/i.test(draft)) return "The reply included a link.";
   if (draft.trim().length < 12) return "The reply was too short to post.";
-  if (asksForMusic(`${fixture.post}\n${fixture.comment}`)) {
-    const sentences = draft.split(/[.!?]/).filter((part) => part.trim().length > 0);
-    const words = draft.trim().split(/\s+/).filter(Boolean);
-    if (sentences.length > 2 || words.length > 40) return "Name two songs or artists and stop.";
-  }
   return null;
 }
 
@@ -238,11 +224,7 @@ export async function askGrok(fixture: Fixture, fetchImpl: FetchLike = fetch) {
     const user =
       attempt === 0
         ? prompt.user
-        : `${prompt.user}\n\nYour last reply was rejected: ${rejection}\n${
-            asksForMusic(`${fixture.post}\n${fixture.comment}`)
-              ? "Name two songs or artists and stop. Do not describe them."
-              : "Write one or two spoken sentences."
-          }`;
+        : `${prompt.user}\n\nYour last reply was rejected: ${rejection}\nUse only as many sentences as this reply needs.`;
     const response = await fetchImpl(ENDPOINT, {
       method: "POST",
       headers: {
@@ -294,11 +276,7 @@ export async function askCursor(fixture: Fixture) {
     const user =
       attempt === 0
         ? prompt.user
-        : `${prompt.user}\n\nYour last reply was rejected: ${rejection}\n${
-            asksForMusic(`${fixture.post}\n${fixture.comment}`)
-              ? "Name two songs or artists and stop. Do not describe them."
-              : "Write one or two spoken sentences."
-          }`;
+        : `${prompt.user}\n\nYour last reply was rejected: ${rejection}\nUse only as many sentences as this reply needs.`;
     const parsed = await runCursor(prompt.system, user, key);
     if (!parsed.ok || !parsed.text) {
       return { ok: false as const, note: `Cursor could not write the reply. ${parsed.note}` };

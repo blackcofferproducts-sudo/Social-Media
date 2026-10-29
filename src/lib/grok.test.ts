@@ -13,8 +13,8 @@ describe("grok", () => {
   it("asks for a human reply to this comment, with no link", () => {
     const prompt = grokPrompt(join);
     assert.match(prompt.system, /person who typed it/);
-    assert.match(prompt.system, /One or two sentences/);
-    assert.match(prompt.system, /name two and stop/);
+    assert.match(prompt.system, /as long as the reply needs/);
+    assert.doesNotMatch(prompt.system, /one or two sentences|two or three sentences|four or five sentences/i);
     assert.match(prompt.system, /No links/);
     assert.match(prompt.user, /how do i actually join/i);
     assert.match(prompt.user, /no links/i);
@@ -62,26 +62,24 @@ describe("grok", () => {
     }
   });
 
-  it("keeps a music recommendation to two names", () => {
+  it("does not fix the reply to a sentence count", () => {
     const ready = readLiveInput(
-      "Hi, everyone! Could you recommend some good music? Or recommend a playlist, an artist, or an underrated artist? I've been stuck on my 2018 playlist ever since I got busy. I wanna go back to listening to new songs. TIA!!",
+      "Hi, everyone! Could you recommend some good music? Or recommend a playlist, an artist, or an underrated artist?",
       "",
       "others",
     );
     assert.equal(ready.ok, true);
     if (!ready.ok) return;
     const prompt = grokPrompt(ready.fixture);
-    assert.match(prompt.user, /Name two songs or artists and stop/);
+    assert.match(prompt.user, /as many sentences as this reply needs/);
+    assert.doesNotMatch(`${prompt.system}\n${prompt.user}`, /one or two sentences|name two songs/i);
+    assert.equal(rejectReply("Give Little Simz and Sampha a go.", ready.fixture), null);
     assert.equal(
-      rejectReply("English Teacher, The World's Biggest Paving Slab. And Wet Leg, Ur Mum.", ready.fixture),
-      null,
-    );
-    assert.match(
       rejectReply(
-        "That 2018 playlist is the thing I can actually see, same songs dropping in before you've even decided you want anything on. It makes me want to put one new artist in front of it and leave you with just that. Try English Teacher and start with The World's Biggest Paving Slab, it's talky and bright and a bit wonky, like the room just woke up. The next couple of tracks sit right beside it, so just let them run. You'll know in about a minute if you want the rest.",
+        "There is an app, and you join in the app. This page is the post, not the sign-up. I have no link to give you.",
         ready.fixture,
-      ) ?? "",
-      /Name two songs or artists and stop/,
+      ),
+      null,
     );
   });
 

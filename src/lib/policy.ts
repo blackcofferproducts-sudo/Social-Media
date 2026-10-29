@@ -240,8 +240,8 @@ export function commentBrief(input: {
   const joining = asksToJoin(input.text) && place === "own" && isCityJam(input.accountId);
   const loss = describesALoss(input.text);
   const communication = isPat(input.accountId)
-    ? "Pat, talking as himself. A few warm sentences, specific to what they said. No slogan."
-    : "A person replying. Stay with what they said, in one or two sentences. If they asked for music, name two songs and stop. Don't summarise the whole post, and don't grade it.";
+    ? "Pat, talking as himself. Specific to what they said, and only as long as that needs. No slogan."
+    : "A person replying. Stay with what they said, and use only as many sentences as the reply needs. Don't summarise the whole post, and don't grade it.";
   const goal = isPat(input.accountId)
     ? "A conversation about his work, agents, and Innovation Philosophie. Not a CITY JAM sign-up."
     : loss && place === "others"
