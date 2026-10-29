@@ -2,7 +2,7 @@
 
 This is the project brief. It replaces any earlier notes. LinkedIn is spelled LinkedIn. Where an older note said "sensable", the word is sensible.
 
-The desk reviews replies for Pat Villaceran and for CITY JAM. The queue shows comments that arrived. It does not invent them, it does not call a social network, and it does not ask for a password.
+The desk reviews replies for Pat Villaceran and for CITY JAM. The queue shows music posts read from Threads. It does not invent them, it does not publish to a social network, and it does not ask for a password.
 
 ## Current slice
 
@@ -64,7 +64,7 @@ Each platform uses its official app authorisation, or a Page admin role.
 - X: X API v2, `POST /2/tweets` with `in_reply_to_tweet_id`, paid credits. Sending stays off until the self-serve reply rule is confirmed on docs.x.com.
 - LinkedIn Page: Community Management comments API, organisation actor, page admin.
 - LinkedIn personal: `w_member_social_feed`, which LinkedIn grants only to approved apps. Sends stay at zero.
-- Threads: Reply Management API, permission `threads_manage_replies`, ceiling 1,000 replies in 24 hours. This slice mock-publishes and does not call the live API.
+- Threads: keyword search reads recent public posts, with `threads_basic` and `threads_keyword_search`. Replies stay mock-published. The reply ceiling, once sending is switched on, is 1,000 in 24 hours under `threads_manage_replies`.
 
 Cursor, for the people building the desk, needs Premium on The X Subscription ($30 a month) or a Teams seat at that tier, because Cloud Agents are not on Free or Plus. A legacy Pro plan also includes them. Who pays is not named. They sign in through Cursor's own login.
 

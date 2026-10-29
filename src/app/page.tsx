@@ -70,7 +70,7 @@ export default async function QueuePage({
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
           {view === "replies"
             ? "No replies are waiting on our Threads posts."
-            : "No comments are waiting. The desk does not fill this list with sample posts."}
+            : "No music posts from Threads are waiting."}
         </p>
       ) : null}
       <ul className="flex flex-col gap-3">
@@ -96,7 +96,7 @@ export default async function QueuePage({
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">{accounts[fixture.accountId].short}</Badge>
-                    {fetched ? <Badge variant="outline">Fetched · music</Badge> : null}
+                    {fetched ? <Badge variant="outline">Threads</Badge> : null}
                     <Badge variant="outline">{signalLabel[fixture.signal]}</Badge>
                     {fixture.training ? (
                       <Badge variant="outline">

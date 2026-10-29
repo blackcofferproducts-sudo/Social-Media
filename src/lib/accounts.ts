@@ -165,7 +165,7 @@ export const accounts: Record<AccountId, Account> = {
     ],
     send: "mock",
     dailyCap: 40,
-    api: "Threads Reply Management API, POST /{threads-reply-id}/replies, permission threads_manage_replies. This slice mock-publishes. It does not call the live API.",
+    api: "Threads keyword search reads recent public posts for the word music. Replies are still mock-published and are not sent.",
     ceiling: "1,000 API replies in a rolling 24 hours. Posts are a separate quota of 250. This desk caps replies at 40 a day.",
     access: "The Threads account owner authorises the app. No password. Threadify can keep scheduling posts.",
     metric:

@@ -5,7 +5,7 @@ import { needsModelDraft } from "@/lib/draft-status";
 import { draftNext } from "@/lib/auto-draft";
 import { askDrafter } from "@/lib/grok";
 import { askLive, type LiveReplyResult } from "@/lib/live-reply";
-import { nextMusicComment } from "@/lib/music-feed";
+import { searchThreadsMusic } from "@/lib/threads";
 import { addIncoming, getDesk, resolveFixture } from "@/lib/store";
 import type { TesterScore } from "@/lib/policy";
 import {
@@ -50,20 +50,34 @@ export async function liveReplyAction(_prev: LiveReplyResult, formData: FormData
   );
 }
 
-export async function pullMusicAction(): Promise<"done" | "fetched" | "worked" | "busy"> {
+export type MusicPull = {
+  status: "done" | "fetched" | "worked" | "busy" | "error";
+  note: string;
+};
+
+export async function pullMusicAction(): Promise<MusicPull> {
   const desk = getDesk();
   const waiting = desk.incoming.find((item) => needsModelDraft(item, desk.comments[item.id]));
   if (waiting) {
     const status = await draftNext(waiting.id);
     if (status === "worked") refresh(waiting.id);
-    return status === "done" ? "fetched" : status;
+    if (status === "busy") return { status: "busy", note: "A reply is still being written." };
+    if (status === "done") return { status: "fetched", note: "Checking Threads for the next music post." };
+    return { status: "worked", note: "A reply is written. Checking for the next post." };
   }
-  const seen = desk.incoming.map((item) => item.id);
-  const next = nextMusicComment(seen);
-  if (!next) return "done";
-  addIncoming(next);
+  const result = await searchThreadsMusic();
+  if (!result.ok) return { status: "error", note: result.note };
+  const seen = new Set(desk.incoming.map((item) => item.id));
+  const fresh = result.posts.filter((post) => !seen.has(post.id));
+  if (fresh.length === 0) {
+    return { status: "done", note: result.note || "No new music posts from Threads." };
+  }
+  for (const post of fresh) addIncoming(post);
   refresh();
-  return "fetched";
+  return {
+    status: "fetched",
+    note: fresh.length === 1 ? "A music post came in from Threads." : "Music posts came in from Threads.",
+  };
 }
 
 export async function draftNextAction(focusId?: string, scope?: "others" | "replies") {
