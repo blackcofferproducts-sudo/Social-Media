@@ -2,7 +2,7 @@
 
 A local desk for reviewing social replies for Pat Villaceran and CITY JAM. It drafts comments on other people's posts across Threads, Instagram, X, and LinkedIn, and it still replies on CITY JAM's own Threads posts. Testers score each text. Pat approves the exact wording. Nothing is sent to a live network.
 
-The brief is [docs/approach.md](docs/approach.md). Mock comments stand in for Threads, Instagram, X, and LinkedIn, so the desk can be used before any API permission exists.
+The brief is [docs/approach.md](docs/approach.md). The queue starts empty. It does not invent comments, and it does not call Threads, Instagram, X, or LinkedIn.
 
 ## Run it
 
@@ -30,11 +30,11 @@ That call uses a Cursor model (Grok if the account lists one, otherwise Composer
 
 `npm test` checks the handoff rules, the gold replies, the 5-out-of-6 pass mark, Pat's approval of the exact text, and the daily caps.
 
-Scores and names are stored in `data/desk-state.json`. That file is local and is not committed. Deleting it restores the sample queue.
+Scores and names are stored in `data/desk-state.json`. That file is local and is not committed. Deleting it clears scores and approvals. The queue stays empty until a comment arrives.
 
 ## What you can do
 
-- Music comments are fetched on their own and passed to the model. Scoring and Pat's approval stay the same.
+- The queue lists only comments that arrived. It does not keep sample posts. When a music comment arrives, it is drafted, scored, and waits for Pat's approval.
 - Open the queue. It starts on other people's posts. Switch to replies on our own Threads posts when you want those.
 - See whether the voice guide allows a reply, or the case must be handed to a person.
 - Write the two tester names on Limits. Until those names are saved, Pat's approval stays shut.

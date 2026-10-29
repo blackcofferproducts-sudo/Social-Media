@@ -6,7 +6,7 @@ import { pullMusicAction } from "@/app/actions";
 
 export function MusicIntake() {
   const router = useRouter();
-  const [line, setLine] = useState("Fetching music comments.");
+  const [line, setLine] = useState("Checking for music comments.");
 
   useEffect(() => {
     let stop = false;
@@ -15,7 +15,9 @@ export function MusicIntake() {
         const status = await pullMusicAction();
         if (stop) return;
         if (status === "done") {
-          setLine("Music comments are fetched. Each one is drafted, scored, and waits for Pat's approval.");
+          setLine(
+            "No music comments are waiting. When one arrives, it is drafted, scored, and waits for Pat's approval.",
+          );
           router.refresh();
           return;
         }

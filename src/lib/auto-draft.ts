@@ -1,5 +1,4 @@
 import { needsModelDraft, WRITING_NOTE } from "./draft-status";
-import { fixtures } from "./fixtures";
 import { askDrafter } from "./grok";
 import { placeOf } from "./fixture";
 import { getDesk, markWriting, resolveFixture, saveGrokDraft, saveGrokNote } from "./store";
@@ -22,7 +21,7 @@ function nextId(focusId?: string, scope?: "others" | "replies") {
     if (focus && needsModelDraft(focus, desk.comments[focus.id])) return focus.id;
     return undefined;
   }
-  return fixtures.find(
+  return desk.incoming.find(
     (fixture) => inScope(fixture.id, scope) && needsModelDraft(fixture, desk.comments[fixture.id]),
   )?.id;
 }

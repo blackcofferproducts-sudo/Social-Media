@@ -4,7 +4,7 @@ import { MusicIntake } from "@/components/music-intake";
 import { Badge } from "@/components/ui/badge";
 import { accountIds, accounts } from "@/lib/accounts";
 import { modelPhase } from "@/lib/draft-status";
-import { fixtures, placeOf } from "@/lib/fixtures";
+import { placeOf } from "@/lib/fixture";
 import { categoryLabel, signalLabel } from "@/lib/labels";
 import { rateImpact } from "@/lib/policy";
 import { deskUsesScratchFile, gateFor, getDesk } from "@/lib/store";
@@ -20,17 +20,12 @@ export default async function QueuePage({
   const view = params.view === "replies" ? "replies" : "others";
   const selected = accountIds.find((id) => id === params.account);
   const desk = getDesk();
-  const rows = fixtures.filter((fixture) => {
+  const list = desk.incoming.filter((fixture) => {
     const place = placeOf(fixture);
     if (view === "replies") return place === "own" && fixture.accountId === "threads";
     if (place !== "others") return false;
     return !selected || fixture.accountId === selected;
   });
-  const musicRows =
-    view === "others"
-      ? desk.incoming.filter((fixture) => !selected || fixture.accountId === selected)
-      : [];
-  const list = [...musicRows, ...rows];
 
   return (
     <div className="flex flex-col gap-6">
@@ -71,6 +66,13 @@ export default async function QueuePage({
         </div>
       ) : null}
       <ArrivalDrafts scope={view === "replies" ? "replies" : "others"} />
+      {list.length === 0 ? (
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+          {view === "replies"
+            ? "No replies are waiting on our Threads posts."
+            : "No comments are waiting. The desk does not fill this list with sample posts."}
+        </p>
+      ) : null}
       <ul className="flex flex-col gap-3">
         {list.map((fixture) => {
           const record = desk.comments[fixture.id];
